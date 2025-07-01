@@ -132,26 +132,17 @@
 		};
 	};
 
-	amp: audio-amplifier {
-		compatible = "simple-audio-amplifier";
-		enable-gpios = <&gpio2 18 GPIO_ACTIVE_HIGH>;
+	sound {
+		compatible = "fsl,imx-audio-ak4619";
+		model = "ak4619-audio";
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_amp_en>;
-		sound-name-prefix = "amplifier";
-	};
-
-	sound {
-		compatible = "simple-audio-card";
-		simple-audio-card,name = "ak4619";
-		simple-audio-card,format = "i2s";
-		simple-audio-card,aux-devs = <&amp>;
-
-		simple-audio-card,cpu {
-			sound-dai = <&sai3>;
-		};
-		simple-audio-card,codec {
-			sound-dai = <&ak4619_codec>;
-		};
+		audio-cpu = <&sai3>;
+		audio-codec = <&ak4619_codec>;
+		spk-con-gpio = <&gpio2 18 GPIO_ACTIVE_HIGH>;
+		audio-routing =
+			"Ext Spk", "AOUT1L",
+			"Ext Spk", "AOUT1R";
 	};
 
 	sound-micfil {
@@ -164,19 +155,6 @@
 
 			cpu {
 				sound-dai = <&micfil>;
-			};
-		};
-	};
-
-	sound-xcvr {
-		compatible = "fsl,imx-audio-card";
-		model = "imx-audio-xcvr";
-
-		pri-dai-link {
-			link-name = "XCVR PCM";
-
-			cpu {
-				sound-dai = <&xcvr>;
 			};
 		};
 	};
@@ -271,8 +249,6 @@
 	pmic@25 {
 		compatible = "nxp,pca9451a";
 		reg = <0x25>;
-		interrupt-parent = <&gpio2>;
-		interrupts = <18 IRQ_TYPE_EDGE_FALLING>;
 
 		regulators {
 			buck1: BUCK1 {
@@ -481,7 +457,7 @@
 	};
 	pinctrl_amp_en: gpio-amp {
 		fsl,pins = <
-			MX93_PAD_GPIO_IO18__GPIO2_IO18		0x31e
+			MX93_PAD_GPIO_IO18__GPIO2_IO18		0x51e
 		>;
 	};
 	pinctrl_gpio_keys: gpio-keys {
