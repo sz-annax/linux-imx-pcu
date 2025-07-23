@@ -13,7 +13,7 @@
 };
 
 / {
-	model = "ANNAX i.MX93 PCU Audio V1";
+	model = "ANNAX i.MX93 PCU RECOVERY";
 	compatible = "fsl,imx93-11x11-evk", "fsl,imx93";
 
 	chosen {
