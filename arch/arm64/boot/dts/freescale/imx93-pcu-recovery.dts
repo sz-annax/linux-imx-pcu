@@ -102,20 +102,6 @@
 		off-on-delay-us = <12000>;
 		enable-active-high;
 	};
-
-	sound-micfil {
-		compatible = "fsl,imx-audio-card";
-		model = "micfil-audio";
-
-		pri-dai-link {
-			link-name = "micfil hifi";
-			format = "i2s";
-
-			cpu {
-				sound-dai = <&micfil>;
-			};
-		};
-	};
 };
 
 &adc1 {
@@ -185,14 +171,6 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_lpi2c1>;
 	status = "okay";
-
-	ak4619_codec: ak4619-codec@10 {
-		compatible = "asahi-kasei,ak4619";
-		reg = <0x10>;
-		clocks = <&clk IMX93_CLK_SAI3_GATE>;
-		clock-names = "mclk";
-		#sound-dai-cells = <0>;
-	};
 };
 
 &lpi2c2 {
@@ -327,7 +305,7 @@
 	assigned-clock-parents = <&clk IMX93_CLK_AUDIO_PLL>;
 	assigned-clock-rates = <12288000>;
 	fsl,sai-mclk-direction-output;
-	status = "okay";
+	status = "disabled";
 };
 
 &sai3 {
@@ -338,7 +316,7 @@
 	assigned-clock-parents = <&clk IMX93_CLK_AUDIO_PLL>;
 	assigned-clock-rates = <12288000>;
 	fsl,sai-mclk-direction-output;
-	status = "okay";
+	status = "disabled";
 };
 
 &usbotg1 {
