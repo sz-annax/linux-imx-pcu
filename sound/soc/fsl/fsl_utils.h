@@ -10,7 +10,7 @@
 #ifndef _FSL_UTILS_H
 #define _FSL_UTILS_H
 
-#define DAI_NAME_SIZE	32
+#define DAI_NAME_SIZE 32
 
 struct snd_soc_dai_link;
 struct device_node;
@@ -24,6 +24,12 @@ void fsl_asoc_get_pll_clocks(struct device *dev, struct clk **pll8k_clk,
 			     struct clk **pll11k_clk);
 
 void fsl_asoc_reparent_pll_clocks(struct device *dev, struct clk *clk,
-				  struct clk *pll8k_clk,
-				  struct clk *pll11k_clk, u64 ratio);
+				  struct clk *pll8k_clk, struct clk *pll11k_clk,
+				  u64 ratio);
+
+void fsl_asoc_constrain_rates(
+	struct snd_pcm_hw_constraint_list *target_constr,
+	const struct snd_pcm_hw_constraint_list *original_constr,
+	struct clk *pll8k_clk, struct clk *pll11k_clk, struct clk *ext_clk,
+	int *target_rates);
 #endif /* _FSL_UTILS_H */
