@@ -103,19 +103,50 @@
 		enable-active-high;
 	};
 
+	leds {
+		compatible = "gpio-leds";
+		led {
+			label = "sys-led";
+			gpios = <&gpio2 4 GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "heartbeat";
+			default-state = "on";
+		};
+	};
+
 	keys {
 		compatible = "gpio-keys";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_gpio_keys>;
 		#address-cells = <1>;
 		#size-cells = <0>;
 		autorepeat;
 
-		// GPIO_IO12 KEY_alarm
-		key-1 {
+		key-pa {
+			label = "KEY_PA";
 			linux,code = <KEY_1>;
-			label = "SW1";
-			gpios = <&gpio2 12 GPIO_ACTIVE_LOW>;
+			gpios = <&pca9539 0 GPIO_ACTIVE_LOW>;
+			gpio-key,wakeup;
+			debounce-interval = <20>;
+		};
+
+		key-ctc {
+			label = "KEY_CTC";
+			linux,code = <KEY_2>;
+			gpios = <&pca9539 1 GPIO_ACTIVE_LOW>;
+			gpio-key,wakeup;
+			debounce-interval = <20>;
+		};
+
+		key-pei {
+			label = "KEY_PEI";
+			linux,code = <KEY_3>;
+			gpios = <&pca9539 2 GPIO_ACTIVE_LOW>;
+			gpio-key,wakeup;
+			debounce-interval = <20>;
+		};
+
+		key-ptt {
+			label = "KEY_PTT";
+			linux,code = <KEY_4>;
+			gpios = <&pca9539 3 GPIO_ACTIVE_LOW>;
 			gpio-key,wakeup;
 			debounce-interval = <20>;
 		};
@@ -236,12 +267,16 @@
 	pca9539: pca9539@75 {
 		compatible = "nxp,pca9539";
 		reg = <0x75>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_pca9539>;
+		interrupt-parent = <&gpio2>;
+		interrupts = <0 IRQ_TYPE_LEVEL_LOW>;
 		gpio-controller;
 		#gpio-cells = <2>;
 
 		gpio-line-names =
-			"","","LED2_R","LED2_G",				/* OUTPUT */
-			"LED3_R","LED3_G","LED4_R","LED4_G",	/* OUTPUT */
+			"KEY_PA","KEY_CTC","KEY_PEI","KEY_PTT",	/* INPUT */
+			"LED_PA","LED_CTC","LED_PEI","LED_PTT",	/* OUTPUT */
 			"LS_G0","LS_G1","SHUTDOWN","",			/* OUTPUT */
 			"","","","";							/* OUTPUT */
 	};
@@ -462,6 +497,11 @@
 };
 
 &iomuxc {
+	pinctrl_pca9539: pca9539 {
+		fsl,pins = <
+			MX93_PAD_GPIO_IO00__GPIO2_IO00		0x31e
+		>;
+	};
 	pinctrl_gpio_leds: gpio-leds {
 		fsl,pins = <
 			MX93_PAD_GPIO_IO04__GPIO2_IO04		0x31e
