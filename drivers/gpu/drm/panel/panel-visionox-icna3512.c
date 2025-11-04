@@ -22,7 +22,6 @@
 #include <drm/drm_mipi_dsi.h>
 #include <drm/drm_panel.h>
 
-
 /* Panel specific color-format bits */
 #define COL_FMT_16BPP 0x55
 #define COL_FMT_18BPP 0x66
@@ -38,7 +37,7 @@ static const u32 visionox_bus_formats[] = {
 };
 
 static const u32 visionox_bus_flags = DRM_BUS_FLAG_DE_LOW |
-				 DRM_BUS_FLAG_PIXDATA_SAMPLE_POSEDGE;
+				      DRM_BUS_FLAG_PIXDATA_SAMPLE_POSEDGE;
 
 struct visionox_panel {
 	struct drm_panel panel;
@@ -72,29 +71,13 @@ static const struct drm_display_mode default_mode = {
 	.vtotal = 1920 + 8 + 4 + 12,
 	.width_mm = 68,
 	.height_mm = 121,
-	.flags = DRM_MODE_FLAG_NHSYNC |
-		 DRM_MODE_FLAG_NVSYNC,
+	.flags = DRM_MODE_FLAG_NHSYNC | DRM_MODE_FLAG_NVSYNC,
 };
 
 static inline struct visionox_panel *to_visionox_panel(struct drm_panel *panel)
 {
 	return container_of(panel, struct visionox_panel, panel);
 }
-
-static int color_format_from_dsi_format(enum mipi_dsi_pixel_format format)
-{
-	switch (format) {
-	case MIPI_DSI_FMT_RGB565:
-		return COL_FMT_16BPP;
-	case MIPI_DSI_FMT_RGB666:
-	case MIPI_DSI_FMT_RGB666_PACKED:
-		return COL_FMT_18BPP;
-	case MIPI_DSI_FMT_RGB888:
-		return COL_FMT_24BPP;
-	default:
-		return COL_FMT_24BPP; /* for backward compatibility */
-	}
-};
 
 static int visionox_panel_prepare(struct drm_panel *panel)
 {
@@ -152,7 +135,8 @@ static int visionox_panel_unprepare(struct drm_panel *panel)
 		gpiod_set_value_cansleep(visionox->reset, 0);
 	}
 
-	ret = regulator_bulk_disable(visionox->num_supplies, visionox->supplies);
+	ret = regulator_bulk_disable(visionox->num_supplies,
+				     visionox->supplies);
 	if (ret)
 		return ret;
 
@@ -181,12 +165,16 @@ static int icna3512_enable(struct visionox_panel *panel)
 	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x9f, 0x0f);
 	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xce, 0x22);
 	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x9f, 0x01);
-	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xb3, 0x00, 0xe0, 0xa0, 0x10, 0xc8, 0x00);
+	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xb3, 0x00, 0xe0, 0xa0, 0x10,
+				     0xc8, 0x00);
 	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x9f, 0x07);
-	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xb2, 0x04, 0x18, 0x08, 0x0c, 0x02, 0x00, 0xc4);
-	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xd3, 0x88, 0x4a, 0x4a, 0x88, 0x4a, 0x4a, 0x00, 
-										   0xeb, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
-	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xcb, 0x01, 0x01, 0x01, 0x01, 0x04, 0x09, 0x2c);
+	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xb2, 0x04, 0x18, 0x08, 0x0c,
+				     0x02, 0x00, 0xc4);
+	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xd3, 0x88, 0x4a, 0x4a, 0x88,
+				     0x4a, 0x4a, 0x00, 0xeb, 0x00, 0x00, 0x00,
+				     0x00, 0x00, 0x00, 0x00);
+	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xcb, 0x01, 0x01, 0x01, 0x01,
+				     0x04, 0x09, 0x2c);
 	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x48, 0x33);
 	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x48, 0x03);
 	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x9f, 0x01);
@@ -241,7 +229,7 @@ static int visionox_panel_disable(struct drm_panel *panel)
 }
 
 static int visionox_panel_get_modes(struct drm_panel *panel,
-			       struct drm_connector *connector)
+				    struct drm_connector *connector)
 {
 	struct drm_display_mode *mode;
 
@@ -297,7 +285,7 @@ static const struct drm_panel_funcs visionox_panel_funcs = {
 	.get_modes = visionox_panel_get_modes,
 };
 
-static const char * const visionox_supply_names[] = {
+static const char *const visionox_supply_names[] = {
 	"v3p3",
 	"v1p8",
 };
@@ -309,14 +297,16 @@ static int visionox_init_regulators(struct visionox_panel *visionox)
 
 	visionox->num_supplies = ARRAY_SIZE(visionox_supply_names);
 	visionox->supplies = devm_kcalloc(dev, visionox->num_supplies,
-				     sizeof(*visionox->supplies), GFP_KERNEL);
+					  sizeof(*visionox->supplies),
+					  GFP_KERNEL);
 	if (!visionox->supplies)
 		return -ENOMEM;
 
 	for (i = 0; i < visionox->num_supplies; i++)
 		visionox->supplies[i].supply = visionox_supply_names[i];
 
-	return devm_regulator_bulk_get(dev, visionox->num_supplies, visionox->supplies);
+	return devm_regulator_bulk_get(dev, visionox->num_supplies,
+				       visionox->supplies);
 };
 
 static const struct visionox_platform_data visionox_icna3512 = {
@@ -332,7 +322,8 @@ MODULE_DEVICE_TABLE(of, visionox_of_match);
 static int visionox_panel_probe(struct mipi_dsi_device *dsi)
 {
 	struct device *dev = &dsi->dev;
-	const struct of_device_id *of_id = of_match_device(visionox_of_match, dev);
+	const struct of_device_id *of_id =
+		of_match_device(visionox_of_match, dev);
 	struct device_node *np = dev->of_node;
 	struct visionox_panel *panel;
 	struct backlight_properties bl_props;
@@ -390,9 +381,8 @@ static int visionox_panel_probe(struct mipi_dsi_device *dsi)
 		return ret;
 	}
 
-	panel->reset = devm_gpiod_get_optional(dev, "reset",
-					       GPIOD_OUT_LOW |
-					       GPIOD_FLAGS_BIT_NONEXCLUSIVE);
+	panel->reset = devm_gpiod_get_optional(
+		dev, "reset", GPIOD_OUT_LOW | GPIOD_FLAGS_BIT_NONEXCLUSIVE);
 	if (IS_ERR(panel->reset)) {
 		ret = PTR_ERR(panel->reset);
 		dev_err(dev, "Failed to get reset gpio (%d)\n", ret);
@@ -405,9 +395,8 @@ static int visionox_panel_probe(struct mipi_dsi_device *dsi)
 	bl_props.brightness = 512;
 	bl_props.max_brightness = 1024;
 
-	panel->backlight = devm_backlight_device_register(dev, dev_name(dev),
-							  dev, dsi, &visionox_bl_ops,
-							  &bl_props);
+	panel->backlight = devm_backlight_device_register(
+		dev, dev_name(dev), dev, dsi, &visionox_bl_ops, &bl_props);
 	if (IS_ERR(panel->backlight)) {
 		ret = PTR_ERR(panel->backlight);
 		dev_err(dev, "Failed to register backlight (%d)\n", ret);

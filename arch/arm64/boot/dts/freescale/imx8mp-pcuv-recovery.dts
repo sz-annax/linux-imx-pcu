@@ -10,7 +10,7 @@
 #include "imx8mp.dtsi"
 
 / {
-	model = "ANNAX i.MX8MP PCUV V1";
+	model = "ANNAX i.MX8MP PCUV RECOVERY";
 	compatible = "fsl,imx8mp-evk", "fsl,imx8mp";
 
 	chosen {
