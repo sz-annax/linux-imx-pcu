@@ -69,8 +69,8 @@ static const struct drm_display_mode default_mode = {
 	.vsync_start = 1920 + 8,
 	.vsync_end = 1920 + 8 + 4,
 	.vtotal = 1920 + 8 + 4 + 12,
-	.width_mm = 68,
-	.height_mm = 121,
+	.width_mm = 87,
+	.height_mm = 155,
 	.flags = DRM_MODE_FLAG_NHSYNC | DRM_MODE_FLAG_NVSYNC,
 };
 
