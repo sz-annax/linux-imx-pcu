@@ -474,7 +474,7 @@ dtb-$(CONFIG_ARCH_MXC) += imx93-11x11-evk.dtb \
 			  imx93-11x11-evk-iw612-otbr.dtb \
 			  imx93-11x11-evk-rpmsg.dtb imx93-11x11-evk-rpmsg-lpv.dtb \
 			  imx93-pcu-audio.dtb imx93-pcu-demo.dtb imx93-pcu-recovery.dtb imx93-pcu-video.dtb \
-			  imx93-acp.dtb imx93-acc.dtb imx93-ledf.dtb
+			  imx93-acp.dtb imx93-acc.dtb imx93-ledf.dtb imx93-pcu-ip.dtb
 
 dtb-$(CONFIG_ARCH_MXC) += imx91-11x11-evk.dtb \
 			  imx91-11x11-evk-flexspi-m2.dtb imx91-11x11-evk-flexspi-nand-m2.dtb \
