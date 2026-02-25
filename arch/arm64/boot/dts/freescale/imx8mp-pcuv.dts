@@ -32,8 +32,7 @@
 
 	memory@40000000 {
 		device_type = "memory";
-		reg = <0x0 0x40000000 0 0xc0000000>,
-		      <0x1 0x00000000 0 0xc0000000>;
+		reg = <0x0 0x40000000 0 0xc0000000>;
 	};
 
 	pcie0_refclk: pcie0-refclk {
@@ -418,7 +417,7 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexcan1>;
 	xceiver-supply = <&reg_can1_stby>;
-	status = "okay";
+	status = "disabled";
 };
 
 &flexcan2 {
@@ -624,6 +623,17 @@
 			};
 		};
 	};
+
+	focaltech_touch: touchscreen@38 {
+		compatible = "focaltech,fts";
+		reg = <0x38>;
+		reset-gpio = <&gpio1 1 GPIO_ACTIVE_LOW>;	// DSI_BL_PWM  GPIO1_IO01
+		irq-gpio = <&gpio1 9 GPIO_ACTIVE_LOW>;		// DSI_TS_nINT GPIO1_IO9
+		touchscreen-size-x = <1080>;
+		touchscreen-size-y = <1920>;
+		max-touch-number = <10>;
+		status = "okay";
+	};
 };
 
 &i2c3 {
@@ -689,7 +699,7 @@
 		mclk = <24000000>;
 		mclk_source = <0>;
 		mipi_csi;
-		status = "disabled";
+		status = "okay";
 
 		port {
 			ov5640_mipi_1_ep: endpoint {
@@ -798,15 +808,15 @@
 		reg = <0>;
 		pinctrl-0 = <&pinctrl_mipi_dsi_en>;
 		pinctrl-names = "default";
-		reset-gpio = <&gpio1 8 GPIO_ACTIVE_LOW>;
+		reset-gpio = <&gpio1 8 GPIO_ACTIVE_LOW>;	// GPIO1_IO8 DSI_EN
 		dsi-lanes = <4>;
 		video-mode = <2>;	/* 0: burst mode
 							 * 1: non-burst mode with sync event
 							 * 2: non-burst mode with sync pulse
 							 * 3: command mode
 							 */
-		width-mm = <68>;
-		height-mm = <121>;
+		width-mm = <87>;
+		height-mm = <155>;
 		status = "okay";
 	};
 };
@@ -1487,4 +1497,12 @@
 	cap_device {
 		status = "okay";
 	};
+};
+
+/* Override gpu_reserved from imx8mp.dtsi for 3GB memory config.
+ * Original address 0x100000000 is outside 3GB physical memory.
+ * Move to 0xF0000000 (within 3GB range: 0x40000000-0x100000000).
+ */
+&gpu_reserved {
+	reg = <0x0 0xf0000000 0 0x10000000>;
 };
