@@ -592,11 +592,13 @@
 		interrupt-parent = <&gpio4>;
 		interrupts = <19 8>;
 
+		/* Port disabled for UUU download mode - USB3_0 is fixed peripheral mode
 		port {
 			typec_dr_sw: endpoint {
 				remote-endpoint = <&usb3_drd_sw>;
 			};
 		};
+		*/
 
 		usb_con: connector {
 			compatible = "usb-c-connector";
@@ -928,21 +930,13 @@
 };
 
 &usb_dwc3_0 {
-	dr_mode = "otg";
+	dr_mode = "peripheral";
 	hnp-disable;
 	srp-disable;
 	adp-disable;
-	usb-role-switch;
-	role-switch-default-mode = "none";
 	snps,dis-u1-entry-quirk;
 	snps,dis-u2-entry-quirk;
 	status = "okay";
-
-	port {
-		usb3_drd_sw: endpoint {
-			remote-endpoint = <&typec_dr_sw>;
-		};
-	};
 };
 
 &usb3_phy1 {
