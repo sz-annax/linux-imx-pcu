@@ -23,7 +23,7 @@
 		pinctrl-0 = <&pinctrl_gpio_led>;
 
 		status {
-			label = "yellow:status";
+			label = "red:status";
 			gpios = <&gpio3 16 GPIO_ACTIVE_HIGH>;
 			linux,default-trigger = "heartbeat";
 			default-state = "on";
@@ -109,56 +109,16 @@
 		enable-active-high;
 	};
 
-	audio_codec_bt_sco: audio-codec-bt-sco {
-		compatible = "linux,bt-sco";
-		#sound-dai-cells = <1>;
-	};
-
-	sound-wm8960 {
-		compatible = "fsl,imx-audio-wm8960";
-		model = "wm8960-audio";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_hpdet>;
+	sound {
+		compatible = "fsl,imx-audio-ak4619";
+		model = "ak4619-audio";
 		audio-cpu = <&sai3>;
-		audio-codec = <&wm8960>;
-		audio-asrc = <&easrc>;
-		hp-det-gpio = <&gpio4 28 0>;
+		audio-codec = <&ak4619_codec>;
+		spk-con-gpios = <&pca9539 8 GPIO_ACTIVE_HIGH>;
+		status = "okay";
 		audio-routing =
-			"Headphone Jack", "HP_L",
-			"Headphone Jack", "HP_R",
-			"Ext Spk", "SPK_LP",
-			"Ext Spk", "SPK_LN",
-			"Ext Spk", "SPK_RP",
-			"Ext Spk", "SPK_RN",
-			"LINPUT1", "Mic Jack",
-			"LINPUT3", "Mic Jack",
-			"Mic Jack", "MICB";
-	};
-
-	sound-bt-sco {
-		compatible = "simple-audio-card";
-		simple-audio-card,name = "bt-sco-audio";
-		simple-audio-card,format = "dsp_a";
-		simple-audio-card,bitclock-inversion;
-		simple-audio-card,frame-master = <&btcpu>;
-		simple-audio-card,bitclock-master = <&btcpu>;
-
-		btcpu: simple-audio-card,cpu {
-			sound-dai = <&sai2>;
-			dai-tdm-slot-num = <2>;
-			dai-tdm-slot-width = <16>;
-		};
-
-		simple-audio-card,codec {
-			sound-dai = <&audio_codec_bt_sco 1>;
-		};
-	};
-
-	sound-hdmi {
-		compatible = "fsl,imx-audio-hdmi";
-		model = "audio-hdmi";
-		audio-cpu = <&aud2htx>;
-		hdmi-out;
+			"Ext Spk", "AOUT1L",
+			"Ext Spk", "AOUT1R";
 	};
 
 	sound-micfil {
@@ -208,25 +168,6 @@
 			reg = <0 0x94300000 0 0x100000>;
 			no-map;
 		};
-	};
-
-	lvds_backlight: lvds_backlight {
-		compatible = "pwm-backlight";
-		pwms = <&pwm2 0 100000 0>;
-		status = "okay";
-
-		brightness-levels = < 0  1  2  3  4  5  6  7  8  9
-				     10 11 12 13 14 15 16 17 18 19
-				     20 21 22 23 24 25 26 27 28 29
-				     30 31 32 33 34 35 36 37 38 39
-				     40 41 42 43 44 45 46 47 48 49
-				     50 51 52 53 54 55 56 57 58 59
-				     60 61 62 63 64 65 66 67 68 69
-				     70 71 72 73 74 75 76 77 78 79
-				     80 81 82 83 84 85 86 87 88 89
-				     90 91 92 93 94 95 96 97 98 99
-				    100>;
-		default-brightness-level = <80>;
 	};
 
 	cbtl04gp {
@@ -420,14 +361,6 @@
 	status = "disabled";
 };
 
-&flexcan2 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_flexcan2>;
-	xceiver-supply = <&reg_can2_stby>;
-	pinctrl-assert-gpios = <&pca6416 3 GPIO_ACTIVE_HIGH>;
-	status = "disabled";/* can2 pin conflict with pdm */
-};
-
 &i2c1 {
 	clock-frequency = <400000>;
 	pinctrl-names = "default";
@@ -550,39 +483,27 @@
 	// 	};
 	// };
 
-	lvds_bridge: lvds-to-hdmi-bridge@4c {
-		compatible = "ite,it6263";
-		reg = <0x4c>;
-		reset-gpios = <&gpio1 10 GPIO_ACTIVE_LOW>;
+	// ov5640_0: ov5640_mipi@3c {
+	// 	compatible = "ovti,ov5640";
+	// 	reg = <0x3c>;
+	// 	pinctrl-names = "default";
+	// 	pinctrl-0 = <&pinctrl_csi0_pwn>, <&pinctrl_csi0_rst>, <&pinctrl_csi_mclk>;
+	// 	clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO2>;
+	// 	clock-names = "xclk";
+	// 	assigned-clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO2>;
+	// 	assigned-clock-parents = <&clk IMX8MP_CLK_24M>;
+	// 	assigned-clock-rates = <24000000>;
+	// 	powerdown-gpios = <&gpio2 11 GPIO_ACTIVE_HIGH>;
+	// 	status = "okay";
 
-		port {
-			it6263_in: endpoint {
-				remote-endpoint = <&lvds_out>;
-			};
-		};
-	};
-
-	ov5640_0: ov5640_mipi@3c {
-		compatible = "ovti,ov5640";
-		reg = <0x3c>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_csi0_pwn>, <&pinctrl_csi0_rst>, <&pinctrl_csi_mclk>;
-		clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO2>;
-		clock-names = "xclk";
-		assigned-clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO2>;
-		assigned-clock-parents = <&clk IMX8MP_CLK_24M>;
-		assigned-clock-rates = <24000000>;
-		powerdown-gpios = <&gpio2 11 GPIO_ACTIVE_HIGH>;
-		status = "okay";
-
-		port {
-			ov5640_mipi_0_ep: endpoint {
-				remote-endpoint = <&mipi_csi0_ep>;
-				data-lanes = <1 2>;
-				clock-lanes = <0>;
-			};
-		};
-	};
+	// 	port {
+	// 		ov5640_mipi_0_ep: endpoint {
+	// 			remote-endpoint = <&mipi_csi0_ep>;
+	// 			data-lanes = <1 2>;
+	// 			clock-lanes = <0>;
+	// 		};
+	// 	};
+	// };
 
 	ptn5110: tcpc@50 {
 		compatible = "nxp,ptn5110";
@@ -626,16 +547,16 @@
 		};
 	};
 
-	focaltech_touch: touchscreen@38 {
-		compatible = "focaltech,fts";
-		reg = <0x38>;
-		reset-gpio = <&gpio1 1 GPIO_ACTIVE_LOW>;	// DSI_BL_PWM  GPIO1_IO01
-		irq-gpio = <&gpio1 9 GPIO_ACTIVE_LOW>;		// DSI_TS_nINT GPIO1_IO9
-		touchscreen-size-x = <1080>;
-		touchscreen-size-y = <1920>;
-		max-touch-number = <10>;
-		status = "okay";
-	};
+	// focaltech_touch: touchscreen@38 {
+	// 	compatible = "focaltech,fts";
+	// 	reg = <0x38>;
+	// 	reset-gpio = <&gpio1 1 GPIO_ACTIVE_LOW>;	// DSI_BL_PWM  GPIO1_IO01
+	// 	irq-gpio = <&gpio1 9 GPIO_ACTIVE_LOW>;		// DSI_TS_nINT GPIO1_IO9
+	// 	touchscreen-size-x = <1080>;
+	// 	touchscreen-size-y = <1920>;
+	// 	max-touch-number = <10>;
+	// 	status = "okay";
+	// };
 };
 
 &i2c3 {
@@ -644,73 +565,68 @@
 	pinctrl-0 = <&pinctrl_i2c3>;
 	status = "okay";
 
-	wm8960: codec@1a {
-		compatible = "wlf,wm8960";
-		reg = <0x1a>;
-		#sound-dai-cells = <0>;
-		clocks = <&audio_blk_ctrl IMX8MP_CLK_AUDIOMIX_SAI3_MCLK1>;
-		clock-names = "mclk";
-		wlf,shared-lrclk;
-		wlf,hp-cfg = <3 2 3>;
-		wlf,gpio-cfg = <1 3>;
-		SPKVDD1-supply = <&reg_audio_pwr>;
-	};
-
-	pca6416: gpio@20 {
-		compatible = "ti,tca6416";
-		reg = <0x20>;
+	pca9539: gpio@75 {
+		compatible = "nxp,pca9539";
+		reg = <0x75>;
 		gpio-controller;
 		#gpio-cells = <2>;
 		interrupt-controller;
 		#interrupt-cells = <2>;
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_pca6416_int>;
+		pinctrl-0 = <&pinctrl_pca9539_int>;
 		interrupt-parent = <&gpio1>;
 		interrupts = <12 IRQ_TYPE_LEVEL_LOW>;
-		gpio-line-names = "EXT_PWREN1",
-			"EXT_PWREN2",
-			"CAN1/I2C5_SEL",
-			"PDM/CAN2_SEL",
-			"FAN_EN",
-			"PWR_MEAS_IO1",
-			"PWR_MEAS_IO2",
-			"EXP_P0_7",
-			"EXP_P1_0",
-			"EXP_P1_1",
-			"EXP_P1_2",
-			"EXP_P1_3",
-			"EXP_P1_4",
-			"EXP_P1_5",
-			"EXP_P1_6",
-			"EXP_P1_7";
+
+		gpio-line-names =
+			"DSI_RESET_1V8",
+			"TP_RST_1V8",
+			"TP_INT_1V8",
+			"CSI_RST_1V8",
+			"CSI_PWDN_1V8",
+			"Door_in_1V8",
+			"KEY_IN_1V8",
+			"LED_1V8",
+			"SHUTDOWN_1V8",
+			"MUTE_1V8",
+			"LS_G1_1V8",
+			"LS_G0_1V8",
+			"","","","";
 	};
 
-	ov5640_1: ov5640_mipi@3c {
-		compatible = "ovti,ov5640";
-		reg = <0x3c>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_csi0_pwn>, <&pinctrl_csi0_rst>, <&pinctrl_csi_mclk>;
-		clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO2>;
-		clock-names = "xclk";
-		assigned-clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO2>;
-		assigned-clock-parents = <&clk IMX8MP_CLK_24M>;
-		assigned-clock-rates = <24000000>;
-		csi_id = <0>;
-		powerdown-gpios = <&gpio4 1 GPIO_ACTIVE_HIGH>;
-		reset-gpios = <&gpio4 0 GPIO_ACTIVE_LOW>;
-		mclk = <24000000>;
-		mclk_source = <0>;
-		mipi_csi;
-		status = "okay";
-
-		port {
-			ov5640_mipi_1_ep: endpoint {
-				remote-endpoint = <&mipi_csi1_ep>;
-				data-lanes = <1 2>;
-				clock-lanes = <0>;
-			};
-		};
+	ak4619_codec: ak4619-codec@10 {
+		compatible = "asahi-kasei,ak4619";
+		reg = <0x10>;
+		clocks = <&audio_blk_ctrl IMX8MP_CLK_AUDIOMIX_SAI3_MCLK1>;
+		clock-names = "mclk";
+		#sound-dai-cells = <0>;
 	};
+
+	// ov5640_1: ov5640_mipi@3c {
+	// 	compatible = "ovti,ov5640";
+	// 	reg = <0x3c>;
+	// 	pinctrl-names = "default";
+	// 	pinctrl-0 = <&pinctrl_csi0_pwn>, <&pinctrl_csi0_rst>, <&pinctrl_csi_mclk>;
+	// 	clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO2>;
+	// 	clock-names = "xclk";
+	// 	assigned-clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO2>;
+	// 	assigned-clock-parents = <&clk IMX8MP_CLK_24M>;
+	// 	assigned-clock-rates = <24000000>;
+	// 	csi_id = <0>;
+	// 	powerdown-gpios = <&gpio4 1 GPIO_ACTIVE_HIGH>;
+	// 	reset-gpios = <&gpio4 0 GPIO_ACTIVE_LOW>;
+	// 	mclk = <24000000>;
+	// 	mclk_source = <0>;
+	// 	mipi_csi;
+	// 	status = "disabled";
+
+	// 	port {
+	// 		ov5640_mipi_1_ep: endpoint {
+	// 			remote-endpoint = <&mipi_csi1_ep>;
+	// 			data-lanes = <1 2>;
+	// 			clock-lanes = <0>;
+	// 		};
+	// 	};
+	// };
 };
 
 /* I2C on expansion connector J22. */
@@ -729,15 +645,15 @@
 };
 
 &hdmi_pavi {
-	status = "okay";
+	status = "disabled";
 };
 
 &hdmi {
-	status = "okay";
+	status = "disabled";
 };
 
 &hdmiphy {
-	status = "okay";
+	status = "disabled";
 };
 
 &lcdif1 {
@@ -755,24 +671,8 @@
 	thres-high = <3 4>;             /* (FIFO * 3 / 4) */
 };
 
-&ldb {
-	status = "okay";
-
-	lvds-channel@0 {
-		status = "okay";
-
-		port@1 {
-			reg = <1>;
-
-			lvds_out: endpoint {
-				remote-endpoint = <&it6263_in>;
-			};
-		};
-	};
-};
-
 &ldb_phy {
-	status = "okay";
+	status = "disabled";
 };
 
 &micfil {
@@ -839,24 +739,6 @@
 	status = "okay";
 };
 
-&pwm1 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_pwm1>;
-	status = "okay";
-};
-
-&pwm2 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_pwm2>;
-	status = "okay";
-};
-
-&pwm4 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_pwm4>;
-	status = "okay";
-};
-
 &sai2 {
 	#sound-dai-cells = <0>;
 	pinctrl-names = "default";
@@ -901,7 +783,7 @@
 	assigned-clocks = <&clk IMX8MP_CLK_UART1>;
 	assigned-clock-parents = <&clk IMX8MP_SYS_PLL1_80M>;
 	uart-has-rtscts;
-	status = "okay";
+	status = "disabled";
 
 	bluetooth {
 		compatible = "nxp,88w8997-bt";
@@ -1193,27 +1075,9 @@
 		>;
 	};
 
-	pinctrl_pca6416_int: pca6416_int_grp {
+	pinctrl_pca9539_int: pca9539_int_grp {
 		fsl,pins = <
 			MX8MP_IOMUXC_GPIO1_IO12__GPIO1_IO12	0x146 /* Input pull-up. */
-		>;
-	};
-
-	pinctrl_pwm1: pwm1grp {
-		fsl,pins = <
-			MX8MP_IOMUXC_GPIO1_IO01__PWM1_OUT	0x116
-		>;
-	};
-
-	pinctrl_pwm2: pwm2grp {
-		fsl,pins = <
-			MX8MP_IOMUXC_GPIO1_IO11__PWM2_OUT	0x116
-		>;
-	};
-
-	pinctrl_pwm4: pwm4grp {
-		fsl,pins = <
-			MX8MP_IOMUXC_SAI5_RXFS__PWM4_OUT	0x116
 		>;
 	};
 
@@ -1438,36 +1302,36 @@
 	status = "okay";
 };
 
-&mipi_csi_0 {
-	status = "okay";
+// &mipi_csi_0 {
+// 	status = "disabled";
 
-	port {
-		mipi_csi0_ep: endpoint {
-			remote-endpoint = <&ov5640_mipi_0_ep>;
-			data-lanes = <2>;
-			csis-hs-settle = <13>;
-			csis-clk-settle = <2>;
-			csis-wclk;
-		};
-	};
-};
+// 	port {
+// 		mipi_csi0_ep: endpoint {
+// 			remote-endpoint = <&ov5640_mipi_0_ep>;
+// 			data-lanes = <2>;
+// 			csis-hs-settle = <13>;
+// 			csis-clk-settle = <2>;
+// 			csis-wclk;
+// 		};
+// 	};
+// };
 
-&mipi_csi_1 {
-	#address-cells = <1>;
-	#size-cells = <0>;
-	status = "disabled";
+// &mipi_csi_1 {
+// 	#address-cells = <1>;
+// 	#size-cells = <0>;
+// 	status = "disabled";
 
-	port@1 {
-		reg = <1>;
-		mipi_csi1_ep: endpoint {
-			remote-endpoint = <&ov5640_mipi_1_ep>;
-			data-lanes = <2>;
-			csis-hs-settle = <13>;
-			csis-clk-settle = <2>;
-			csis-wclk;
-		};
-	};
-};
+// 	port@1 {
+// 		reg = <1>;
+// 		mipi_csi1_ep: endpoint {
+// 			remote-endpoint = <&ov5640_mipi_1_ep>;
+// 			data-lanes = <2>;
+// 			csis-hs-settle = <13>;
+// 			csis-clk-settle = <2>;
+// 			csis-wclk;
+// 		};
+// 	};
+// };
 
 &cameradev {
 	status = "okay";

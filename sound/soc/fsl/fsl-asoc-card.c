@@ -187,7 +187,6 @@ static int corgi_amp_event(struct snd_soc_dapm_widget *w, struct snd_kcontrol *c
 {
 	struct snd_soc_card *card = w->dapm->card;
 	struct fsl_asoc_card_priv *priv = snd_soc_card_get_drvdata(card);
-	struct device *dev = card->dev;
 
 	if (w->id == snd_soc_dapm_spk) {
 		int val = 0;
@@ -1250,6 +1249,19 @@ static int fsl_asoc_card_probe(struct platform_device *pdev)
 		}
 	}
 
+	priv->amp_enable = devm_gpiod_get_optional(&pdev->dev, "spk-con",
+						     GPIOD_OUT_LOW);
+	if (IS_ERR(priv->amp_enable)) {
+		ret = PTR_ERR(priv->amp_enable);
+		/* GPIO expander (e.g. PCA9539) may not be ready yet, defer probe */
+		if (ret == -ENXIO)
+			ret = -EPROBE_DEFER;
+		if (ret != -EPROBE_DEFER)
+			dev_err(&pdev->dev, "Failed to get 'spk-con' gpio: %d\n", ret);
+		priv->amp_enable = NULL;
+		goto asrc_fail;
+	}
+
 	/* Finish card registering */
 	platform_set_drvdata(pdev, priv);
 	snd_soc_card_set_drvdata(&priv->card, priv);
@@ -1287,13 +1299,6 @@ static int fsl_asoc_card_probe(struct platform_device *pdev)
 
 		snd_soc_jack_notifier_register(&priv->mic_jack.jack, &mic_jack_nb);
 	}
-
-	priv->amp_enable = devm_gpiod_get_optional(&pdev->dev, "spk-con",
-						     GPIOD_OUT_LOW);
-	dev_info(&pdev->dev, "amp_enable: %p\n", priv->amp_enable);
-	if (IS_ERR(priv->amp_enable))
-		return dev_err_probe(&pdev->dev, PTR_ERR(priv->amp_enable),
-				     "Failed to get 'spk-con' gpio");
 
 asrc_fail:
 	of_node_put(asrc_np);
