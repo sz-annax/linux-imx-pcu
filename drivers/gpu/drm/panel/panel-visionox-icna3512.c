@@ -290,23 +290,16 @@ static int visionox_bl_update_status(struct backlight_device *bl)
 	struct mipi_dsi_device *dsi = bl_get_data(bl);
 	struct visionox_panel *visionox = mipi_dsi_get_drvdata(dsi);
 	struct device *dev = &dsi->dev;
-	int ret = 0;
 
-	dev_info(dev, "visionox_bl_update_status: brightness=%d, prepared=%d\n",
+	dev_info(dev, "visionox_bl_update_status: brightness=%d, prepared=%d (skipped)\n",
 		 bl->props.brightness, visionox->prepared);
 
-	if (!visionox->prepared)
-		return 0;
-
-	dsi->mode_flags &= ~MIPI_DSI_MODE_LPM;
-
-	ret = mipi_dsi_dcs_set_display_brightness(dsi, bl->props.brightness);
-	if (ret < 0) {
-		dev_err(dev, "Failed to set brightness: %d\n", ret);
-		return ret;
-	}
-
-	dev_info(dev, "visionox_bl_update_status: brightness set ok\n");
+	/*
+	 * TODO: Dynamic brightness control is not working correctly on this panel.
+	 * The brightness is set during panel enable sequence (0x51, 0x0d, 0xbb).
+	 * Attempting to change brightness after init causes display issues.
+	 * For now, skip brightness updates to keep the panel stable.
+	 */
 	return 0;
 }
 
@@ -430,8 +423,8 @@ static int visionox_panel_probe(struct mipi_dsi_device *dsi)
 
 	memset(&bl_props, 0, sizeof(bl_props));
 	bl_props.type = BACKLIGHT_RAW;
-	bl_props.brightness = 512;
-	bl_props.max_brightness = 1024;
+	bl_props.brightness = 3515;	/* 0x0DBB - match init sequence */
+	bl_props.max_brightness = 4095;	/* 12-bit: 0x0FFF */
 
 	panel->backlight = devm_backlight_device_register(
 		dev, dev_name(dev), dev, dsi, &visionox_bl_ops, &bl_props);

@@ -144,6 +144,18 @@
 	};
 };
 
+&gpio1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pca9539_rst>;
+
+	pca9539-reset-hog {
+		gpio-hog;
+		gpios = <11 GPIO_ACTIVE_HIGH>;
+		output-high;
+		line-name = "PCA9539_RESET";
+	};
+};
+
 &flexspi {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexspi0>;
@@ -516,18 +528,18 @@
 		interrupts = <12 IRQ_TYPE_LEVEL_LOW>;
 
 		gpio-line-names =
-			"DSI_RESET_1V8",
-			"TP_RST_1V8",
-			"TP_INT_1V8",
-			"CSI_RST_1V8",
-			"CSI_PWDN_1V8",
-			"Door_in_1V8",
-			"KEY_IN_1V8",
-			"LED_1V8",
-			"SHUTDOWN_1V8",
-			"MUTE_1V8",
-			"LS_G1_1V8",
-			"LS_G0_1V8",
+			"DSI_RESET",
+			"TP_RST",
+			"TP_INT",
+			"CSI_RST",
+			"CSI_PWDN",
+			"Door_in",
+			"KEY_IN",
+			"LED",
+			"SHUTDOWN",
+			"MUTE",
+			"LS_G1",
+			"LS_G0",
 			"","","","";
 	};
 
@@ -868,6 +880,12 @@
 	pinctrl_pca9539_int: pca9539_int_grp {
 		fsl,pins = <
 			MX8MP_IOMUXC_GPIO1_IO12__GPIO1_IO12	0x146 /* Input pull-up. */
+		>;
+	};
+
+	pinctrl_pca9539_rst: pca9539_rst_grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_GPIO1_IO11__GPIO1_IO11	0x16 /* Output, pull-up */
 		>;
 	};
 
