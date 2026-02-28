@@ -99,9 +99,16 @@ static int visionox_panel_prepare(struct drm_panel *panel)
 	usleep_range(10000, 12000);
 
 	if (visionox->reset) {
+		/* Ensure reset is asserted first */
+		dev_info(dev, "visionox_panel_prepare: assert reset (set to 1)\n");
+		gpiod_set_value_cansleep(visionox->reset, 1);
+		msleep(20);  /* Hold reset for 20ms */
+
+		/* Now deassert reset to release the panel */
+		dev_info(dev, "visionox_panel_prepare: deassert reset (set to 0)\n");
 		gpiod_set_value_cansleep(visionox->reset, 0);
 		/*
-		 * 50ms delay after reset-out, as per manufacturer initalization
+		 * 120ms delay after reset-out, as per manufacturer initalization
 		 * sequence.
 		 */
 		msleep(120);
@@ -148,9 +155,14 @@ static int visionox_panel_unprepare(struct drm_panel *panel)
 static int icna3512_enable(struct visionox_panel *panel)
 {
 	struct mipi_dsi_multi_context dsi_ctx = { .dsi = panel->dsi };
+	struct device *dev = &panel->dsi->dev;
 
-	if (panel->enabled)
+	dev_info(dev, "icna3512_enable\n");
+
+	if (panel->enabled) {
+		dev_info(dev, "icna3512_enable: already enabled\n");
 		return 0;
+	}
 
 	panel->dsi->mode_flags |= MIPI_DSI_MODE_LPM;
 
@@ -181,6 +193,11 @@ static int icna3512_enable(struct visionox_panel *panel)
 	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xc5, 0x01);
 	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x29);
 
+	if (dsi_ctx.accum_err)
+		dev_err(dev, "icna3512_enable: DSI commands failed: %d\n", dsi_ctx.accum_err);
+	else
+		dev_info(dev, "icna3512_enable: DSI commands sent successfully\n");
+
 	panel->enabled = true;
 
 	return dsi_ctx.accum_err;
@@ -189,8 +206,21 @@ static int icna3512_enable(struct visionox_panel *panel)
 static int visionox_panel_enable(struct drm_panel *panel)
 {
 	struct visionox_panel *visionox = to_visionox_panel(panel);
+	struct device *dev = &visionox->dsi->dev;
+	int ret;
 
-	return visionox->pdata->enable(visionox);
+	dev_info(dev, "visionox_panel_enable\n");
+
+	ret = visionox->pdata->enable(visionox);
+	if (ret) {
+		dev_err(dev, "panel enable failed: %d\n", ret);
+		return ret;
+	}
+
+	backlight_enable(visionox->backlight);
+	dev_info(dev, "visionox_panel_enable ok\n");
+
+	return 0;
 }
 
 static int visionox_panel_disable(struct drm_panel *panel)
@@ -259,7 +289,11 @@ static int visionox_bl_update_status(struct backlight_device *bl)
 {
 	struct mipi_dsi_device *dsi = bl_get_data(bl);
 	struct visionox_panel *visionox = mipi_dsi_get_drvdata(dsi);
+	struct device *dev = &dsi->dev;
 	int ret = 0;
+
+	dev_info(dev, "visionox_bl_update_status: brightness=%d, prepared=%d\n",
+		 bl->props.brightness, visionox->prepared);
 
 	if (!visionox->prepared)
 		return 0;
@@ -267,9 +301,12 @@ static int visionox_bl_update_status(struct backlight_device *bl)
 	dsi->mode_flags &= ~MIPI_DSI_MODE_LPM;
 
 	ret = mipi_dsi_dcs_set_display_brightness(dsi, bl->props.brightness);
-	if (ret < 0)
+	if (ret < 0) {
+		dev_err(dev, "Failed to set brightness: %d\n", ret);
 		return ret;
+	}
 
+	dev_info(dev, "visionox_bl_update_status: brightness set ok\n");
 	return 0;
 }
 
@@ -388,6 +425,7 @@ static int visionox_panel_probe(struct mipi_dsi_device *dsi)
 		dev_err(dev, "Failed to get reset gpio (%d)\n", ret);
 		return ret;
 	}
+	dev_info(dev, "visionox_panel_probe: assert reset (set to 1)\n");
 	gpiod_set_value_cansleep(panel->reset, 1);
 
 	memset(&bl_props, 0, sizeof(bl_props));
