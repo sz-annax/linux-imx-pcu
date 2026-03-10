@@ -29,6 +29,29 @@
 		};
 	};
 
+	keys {
+		compatible = "gpio-keys";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		autorepeat;
+
+		key-door {
+			label = "KEY_DOOR";
+			linux,code = <KEY_1>;
+			gpios = <&pca9539 5 GPIO_ACTIVE_LOW>;
+			gpio-key,wakeup;
+			debounce-interval = <20>;
+		};
+
+		key-sos {
+			label = "KEY_SOS";
+			linux,code = <KEY_2>;
+			gpios = <&pca9539 6 GPIO_ACTIVE_LOW>;
+			gpio-key,wakeup;
+			debounce-interval = <20>;
+		};
+	};
+
 	memory@40000000 {
 		device_type = "memory";
 		reg = <0x0 0x40000000 0 0xc0000000>;
