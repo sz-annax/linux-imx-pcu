@@ -31,9 +31,6 @@
 
 	keys {
 		compatible = "gpio-keys";
-		#address-cells = <1>;
-		#size-cells = <0>;
-		autorepeat;
 
 		key-door {
 			label = "KEY_DOOR";
@@ -170,13 +167,6 @@
 &gpio1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_pca9539_rst>;
-
-	pca9539-reset-hog {
-		gpio-hog;
-		gpios = <11 GPIO_ACTIVE_HIGH>;
-		output-high;
-		line-name = "PCA9539_RESET";
-	};
 };
 
 &flexspi {
@@ -494,6 +484,7 @@
 	pca9539: gpio@75 {
 		compatible = "nxp,pca9539";
 		reg = <0x75>;
+		reset-gpios = <&gpio1 11 GPIO_ACTIVE_LOW>;
 		gpio-controller;
 		#gpio-cells = <2>;
 		interrupt-controller;
