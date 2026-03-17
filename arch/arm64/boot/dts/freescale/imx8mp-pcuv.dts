@@ -88,6 +88,14 @@
 		enable-active-high;
 	};
 
+	reg_adc_vref: regulator-adc-vref {
+		compatible = "regulator-fixed";
+		regulator-name = "ADC_VREF_3V3";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-always-on;
+	};
+
 	sound {
 		compatible = "fsl,imx-audio-ak4619";
 		model = "ak4619-audio";
@@ -216,10 +224,10 @@
 	cs-gpios = <&gpio5 13 GPIO_ACTIVE_LOW>;
 	status = "okay";
 
-	spidev1: spi@0 {
+	tpm_tis: tpm@0 {
+		compatible = "infineon,slb9670", "tcg,tpm_tis-spi";
 		reg = <0>;
-		compatible = "rohm,dh2228fv";
-		spi-max-frequency = <500000>;
+		spi-max-frequency = <10000000>;
 	};
 };
 
@@ -421,6 +429,13 @@
 	pinctrl-0 = <&pinctrl_i2c2>;
 	status = "okay";
 
+	adc081c021@5a {
+		compatible = "ti,adc081c";
+		reg = <0x5a>;
+		vref-supply = <&reg_adc_vref>;
+		#io-channel-cells = <1>;
+	};
+
 	ptn5110: tcpc@50 {
 		compatible = "nxp,ptn5110";
 		pinctrl-names = "default";
@@ -617,6 +632,23 @@
 		status = "okay";
 	};
 };
+
+// &mipi_dsi {
+//     status = "okay";
+//     #address-cells = <1>;
+//     #size-cells = <0>;
+
+//     panel@0 {
+//         compatible = "chipone,icna3520";
+//         reg = <0>;
+//         reset-gpios = <&pca9539 0 GPIO_ACTIVE_LOW>;
+//         dsi-lanes = <4>;
+//         video-mode = <2>;	/* same as icna3512: non-burst mode with sync pulse */
+//         width-mm = <87>;
+//         height-mm = <155>;
+//         status = "okay";
+//     };
+// };
 
 &sai3 {
 	pinctrl-names = "default";
