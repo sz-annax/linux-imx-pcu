@@ -404,6 +404,16 @@ config SL28CPLD_WATCHDOG
 	  To compile this driver as a module, choose M here: the
 	  module will be called sl28cpld_wdt.
 
+config M41T94_WATCHDOG
+	tristate "M41T94 Watchdog"
+	select WATCHDOG_CORE
+	help
+	  Say Y here to include support for the watchdog timer
+	  on the M41T94 chip.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called m41t94_wdt.
+
 # ALPHA Architecture
 
 # ARM Architecture

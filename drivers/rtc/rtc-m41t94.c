@@ -9,6 +9,7 @@
 #include <linux/kernel.h>
 #include <linux/platform_device.h>
 #include <linux/rtc.h>
+#include <linux/of.h>
 #include <linux/spi/spi.h>
 #include <linux/bcd.h>
 
@@ -129,12 +130,27 @@ static int m41t94_probe(struct spi_device *spi)
 
 	return 0;
 }
+#ifdef CONFIG_OF
+static const struct of_device_id m41t94_of_match[] = {
+        { .compatible = "st,rtc-m41t94" },
+        { }
+};
+MODULE_DEVICE_TABLE(of, m41t94_of_match);
+#endif
+
+static const struct spi_device_id m41t94_spi_ids[] = {
+        { .name = "m41t94" },
+        { }
+};
+MODULE_DEVICE_TABLE(spi, m41t94_spi_ids);
 
 static struct spi_driver m41t94_driver = {
 	.driver = {
 		.name	= "rtc-m41t94",
+		.of_match_table = of_match_ptr(m41t94_of_match),
 	},
 	.probe	= m41t94_probe,
+	.id_table = m41t94_spi_ids,
 };
 
 module_spi_driver(m41t94_driver);
