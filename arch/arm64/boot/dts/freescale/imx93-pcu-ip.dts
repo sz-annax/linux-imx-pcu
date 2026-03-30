@@ -351,17 +351,17 @@
 	tpm_tis: tpm@0 {
 		compatible = "infineon,slb9670", "tcg,tpm_tis-spi";
 		reg = <0>;
-		spi-max-frequency = <10000000>;
+		spi-max-frequency = <1000000>;
 	};
 
 	m41t94: m41t94_wdg@1 {
-	compatible = "st,m41t94-wdt";
-	reg = <1>;
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_wdi>;
-	spi-max-frequency = <2000000>;
-	timeout-sec = <120>;
-	wdi-gpios = <&gpio2 28 GPIO_ACTIVE_HIGH>;
+		compatible = "st,m41t94-wdt";
+		reg = <1>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_wdi>;
+		spi-max-frequency = <2000000>;
+		timeout-sec = <120>;
+		wdi-gpios = <&gpio2 28 GPIO_ACTIVE_HIGH>;
 	};
 };
 
@@ -508,9 +508,9 @@
 		fsl,pins = <
 			MX93_PAD_GPIO_IO07__GPIO2_IO07		0x3fe
 			MX93_PAD_GPIO_IO08__GPIO2_IO08		0x3fe
-			MX93_PAD_GPIO_IO09__LPSPI3_SIN		0x3fe
-			MX93_PAD_GPIO_IO10__LPSPI3_SOUT		0x3fe
-			MX93_PAD_GPIO_IO11__LPSPI3_SCK		0x3fe
+			MX93_PAD_GPIO_IO09__LPSPI3_SIN		0x1fe
+			MX93_PAD_GPIO_IO10__LPSPI3_SOUT		0x1fe
+			MX93_PAD_GPIO_IO11__LPSPI3_SCK		0x1fe
 		>;
 	};
 
