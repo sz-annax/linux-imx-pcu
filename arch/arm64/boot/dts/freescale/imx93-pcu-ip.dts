@@ -121,6 +121,18 @@
 		};
 	};
 
+	leds {
+		compatible = "gpio-leds";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_gpio_leds>;
+
+		heartbeat {
+			label = "heartbeat";
+			gpios = <&gpio2 4 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "heartbeat";
+		};
+	};
+
 	sound {
 		compatible = "fsl,imx-audio-ak4619";
 		model = "ak4619-audio";
