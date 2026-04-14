@@ -119,6 +119,22 @@
 			gpio-key,wakeup;
 			debounce-interval = <20>;
 		};
+
+		// PCA9539 0 ,PCU_IN1_DET
+		key-2 {
+			linux,code = <KEY_2>;
+			label = "SW2";
+			gpios = <&pca9539 0 GPIO_ACTIVE_LOW>;
+			debounce-interval = <20>;
+		};
+
+		// PCA9539 1 ,PCU_IN2_DET
+		key-3 {
+			linux,code = <KEY_3>;
+			label = "SW3";
+			gpios = <&pca9539 1 GPIO_ACTIVE_LOW>;
+			debounce-interval = <20>;
+		};
 	};
 
 	leds {
@@ -249,8 +265,13 @@
 	pca9539: pca9539@75 {
 		compatible = "nxp,pca9539";
 		reg = <0x75>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_pca9539>;
 		gpio-controller;
 		#gpio-cells = <2>;
+		interrupt-parent = <&gpio2>;
+		interrupts = <0 IRQ_TYPE_EDGE_FALLING>;
+		reset-gpios = <&gpio2 5 GPIO_ACTIVE_LOW>;
 
 		gpio-line-names =
 			"PCU_IN1_DET","PCU_IN2_DET","LED2_R","LED2_G",				/* OUTPUT */
@@ -519,6 +540,13 @@
 	pinctrl_gpio_keys: gpio-keys {
 		fsl,pins = <
 			MX93_PAD_GPIO_IO12__GPIO2_IO12		0x31e
+		>;
+	};
+
+	pinctrl_pca9539: pca9539-irq-rst {
+		fsl,pins = <
+			MX93_PAD_GPIO_IO00__GPIO2_IO00		0x31e
+			MX93_PAD_GPIO_IO05__GPIO2_IO05		0x31e
 		>;
 	};
 
