@@ -137,6 +137,23 @@
 		};
 	};
 
+	key-cyber {
+		compatible = "gpio-keys";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_cyber_keys>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		autorepeat;
+
+		key-cyber {
+			linux,code = <KEY_C>;
+			label = "cyber-key";
+			gpios = <&gpio2 21 GPIO_ACTIVE_LOW>;
+			gpio-key,wakeup;
+			debounce-interval = <20>;
+		};
+	};
+
 	leds {
 		compatible = "gpio-leds";
 		pinctrl-names = "default";
@@ -540,6 +557,12 @@
 	pinctrl_gpio_keys: gpio-keys {
 		fsl,pins = <
 			MX93_PAD_GPIO_IO12__GPIO2_IO12		0x31e
+		>;
+	};
+
+	pinctrl_cyber_keys: key-cyber {
+		fsl,pins = <
+			MX93_PAD_GPIO_IO21__GPIO2_IO21 0x31e
 		>;
 	};
 
