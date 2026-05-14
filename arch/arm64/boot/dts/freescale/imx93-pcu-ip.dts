@@ -161,7 +161,7 @@
 
 		heartbeat {
 			label = "heartbeat";
-			gpios = <&gpio2 4 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio2 4 GPIO_ACTIVE_LOW>;
 			linux,default-trigger = "heartbeat";
 		};
 	};
@@ -220,7 +220,7 @@
 
 &eqos {
 	pinctrl-names = "default", "sleep";
-	pinctrl-0 = <&pinctrl_eqos>;
+	pinctrl-0 = <&pinctrl_eqos &pinctrl_eqos_phy_reset>;
 	pinctrl-1 = <&pinctrl_eqos_sleep>;
 	phy-mode = "rgmii-id";
 	phy-handle = <&ethphy1>;
@@ -234,7 +234,7 @@
 
 		ethphy1: ethernet-phy@1 {
 			reg = <1>;
-			reset-gpios = <&gpio2 15 GPIO_ACTIVE_LOW>;
+			reset-gpios = <&gpio2 22 GPIO_ACTIVE_LOW>;
 			reset-assert-us = <10000>;
 			reset-deassert-us = <80000>;
 			realtek,clkout-disable;
@@ -605,6 +605,12 @@
 			MX93_PAD_ENET1_TD3__ENET_QOS_RGMII_TD3			0x57e
 			MX93_PAD_ENET1_TXC__CCM_ENET_QOS_CLOCK_GENERATE_TX_CLK	0x58e
 			MX93_PAD_ENET1_TX_CTL__ENET_QOS_RGMII_TX_CTL		0x57e
+		>;
+	};
+
+	pinctrl_eqos_phy_reset: eqos-phy-reset {
+		fsl,pins = <
+			MX93_PAD_GPIO_IO22__GPIO2_IO22		0x31e
 		>;
 	};
 
