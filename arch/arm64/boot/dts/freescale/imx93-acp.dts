@@ -117,12 +117,14 @@
 		compatible = "gpio-keys";
 		#address-cells = <1>;
 		#size-cells = <0>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_factory_reset>;
 		autorepeat;
 
 		key-pa {
 			label = "KEY_PA";
 			linux,code = <KEY_1>;
-			gpios = <&pca9539 0 GPIO_ACTIVE_LOW>;
+			gpios = <&pca9539 7 GPIO_ACTIVE_LOW>;
 			gpio-key,wakeup;
 			debounce-interval = <20>;
 		};
@@ -130,7 +132,7 @@
 		key-ctc {
 			label = "KEY_CTC";
 			linux,code = <KEY_2>;
-			gpios = <&pca9539 1 GPIO_ACTIVE_LOW>;
+			gpios = <&pca9539 6 GPIO_ACTIVE_LOW>;
 			gpio-key,wakeup;
 			debounce-interval = <20>;
 		};
@@ -138,7 +140,7 @@
 		key-pei {
 			label = "KEY_PEI";
 			linux,code = <KEY_3>;
-			gpios = <&pca9539 2 GPIO_ACTIVE_LOW>;
+			gpios = <&pca9539 5 GPIO_ACTIVE_LOW>;
 			gpio-key,wakeup;
 			debounce-interval = <20>;
 		};
@@ -146,7 +148,103 @@
 		key-ptt {
 			label = "KEY_PTT";
 			linux,code = <KEY_4>;
-			gpios = <&pca9539 3 GPIO_ACTIVE_LOW>;
+			gpios = <&pca9539 4 GPIO_ACTIVE_LOW>;
+			gpio-key,wakeup;
+			debounce-interval = <20>;
+		};
+
+		k5_ptt_in {
+			label = "K5_PTT_IN";
+			linux,code = <KEY_5>;
+			gpios = <&pca9539 12 GPIO_ACTIVE_LOW>;
+			gpio-key,wakeup;
+			debounce-interval = <20>;
+		};
+
+		hook {
+			label = "HOOK";
+			linux,code = <KEY_6>;
+			gpios = <&pca9539 13 GPIO_ACTIVE_LOW>;
+			gpio-key,wakeup;
+			debounce-interval = <20>;
+		};
+
+		mic_choose {
+			label = "MIC_CHOOSE";
+			linux,code = <KEY_7>;
+			gpios = <&pca9539 14 GPIO_ACTIVE_LOW>;
+			gpio-key,wakeup;
+			debounce-interval = <20>;
+		};
+
+		gooseneck_choose {
+			label = "GOOSENECK_CHOOSE";
+			linux,code = <KEY_8>;
+			gpios = <&pca9539 15 GPIO_ACTIVE_LOW>;
+			gpio-key,wakeup;
+			debounce-interval = <20>;
+		};
+
+		k6_in {
+			label = "K6_IN";
+			linux,code = <KEY_9>;
+			gpios = <&pca9539 8 GPIO_ACTIVE_LOW>;
+			gpio-key,wakeup;
+			debounce-interval = <20>;
+		};
+
+		k5_in {
+			label = "K5_IN";
+			linux,code = <KEY_0>;
+			gpios = <&pca9539 9 GPIO_ACTIVE_LOW>;
+			gpio-key,wakeup;
+			debounce-interval = <20>;
+		};
+
+		ptt_button {
+			label = "PTT_BUTTON";
+			linux,code = <KEY_F1>;
+			gpios = <&pca9539 10 GPIO_ACTIVE_LOW>;
+			gpio-key,wakeup;
+			debounce-interval = <20>;
+		};
+
+		ctc_button {
+			label = "CTC_BUTTON";
+			linux,code = <KEY_F2>;
+			gpios = <&pca9539 11 GPIO_ACTIVE_LOW>;
+			gpio-key,wakeup;
+			debounce-interval = <20>;
+		};
+
+		pei_button {
+			label = "PEI_BUTTON";
+			linux,code = <KEY_F3>;
+			gpios = <&pca9539 12 GPIO_ACTIVE_LOW>;
+			gpio-key,wakeup;
+			debounce-interval = <20>;
+		};	
+		
+		pa_button {
+			label = "PA_BUTTON";
+			linux,code = <KEY_F4>;
+			gpios = <&pca9539 13 GPIO_ACTIVE_LOW>;
+			gpio-key,wakeup;
+			debounce-interval = <20>;
+		};
+
+		lsp_choose {
+			label = "LSP_CHOOSE";
+			linux,code = <KEY_F5>;
+			gpios = <&pca9539 14 GPIO_ACTIVE_LOW>;
+			gpio-key,wakeup;
+			debounce-interval = <20>;
+		};
+
+		factory-reset {
+			label = "factory_reset";
+			linux,code = <KEY_RESTART>;
+			gpios = <&gpio2 21 GPIO_ACTIVE_LOW>;
 			gpio-key,wakeup;
 			debounce-interval = <20>;
 		};
@@ -220,7 +318,7 @@
 
 		ethphy1: ethernet-phy@1 {
 			reg = <1>;
-			reset-gpios = <&gpio2 15 GPIO_ACTIVE_LOW>;
+			reset-gpios = <&gpio2 22 GPIO_ACTIVE_LOW>;
 			reset-assert-us = <10000>;
 			reset-deassert-us = <80000>;
 			realtek,clkout-disable;
@@ -264,9 +362,9 @@
 	pinctrl-1 = <&pinctrl_lpi2c2>;
 	status = "okay";
 
-	pca9539: pca9539@75 {
+	pca9539: pca9539@74 {
 		compatible = "nxp,pca9539";
-		reg = <0x75>;
+		reg = <0x74>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_pca9539>;
 		interrupt-parent = <&gpio2>;
@@ -275,11 +373,36 @@
 		#gpio-cells = <2>;
 
 		gpio-line-names =
-			"KEY_PA","KEY_CTC","KEY_PEI","KEY_PTT",	/* INPUT */
-			"LED_PA","LED_CTC","LED_PEI","LED_PTT",	/* OUTPUT */
-			"LS_G0","LS_G1","SHUTDOWN","",			/* OUTPUT */
-			"","","","";							/* OUTPUT */
+			"LED_PTT","LED_PEI","LED_CTC","LED_PA",	/* OUTPUT */
+			"KEY_PTT","KEY_PEI","KEY_CTC","KEY_PA",	/* INPUT */
+			"LS_G0","LS_G1","SHUTDOWN","MIC_CR", /* OUTPUT */
+			"K5_PTT_IN","HOOK","MIC_CHOOSE","GOOSENECK_CHOOSE"; /* INPUT */
 	};
+
+    pca9539_00: pca9539@75 {
+        compatible = "nxp,pca9539";
+        reg = <0x75>;
+        interrupt-parent = <&gpio2>;
+        interrupts = <0 IRQ_TYPE_LEVEL_LOW>;
+        gpio-controller;
+        #gpio-cells = <2>;
+
+        gpio-line-names =
+            "PA_INDICATOR", "PEI_LAMP", "CTC_LAMP", "PTT_LAMP", /* OUTPUT */
+            "BUTTON_LAMP1", "BUTTON_LAMP2", "LSP_CR", "", /* OUTPUT */
+            "K6_IN", "K5_IN", "PTT_BUTTON", "CTC_BUTTON", /* INPUT */
+            "PEI_BUTTON", "PA_BUTTON", "LSP_CHOOSE", ""; /* INPUT */
+	};
+
+    isl22316_0@28 {
+        compatible = "ti,tpl0401-103";
+        reg = <0x28>; /* I2C 地址 */
+    };
+
+    isl22316_1@2b {
+        compatible = "ti,tpl0401-103";
+        reg = <0x2b>; /* I2C 地址 */
+    };
 
 	pcf85263@51 {
 		compatible = "nxp,pcf85263";
@@ -372,6 +495,40 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_lpi2c3>;
 	status = "disabled";
+};
+
+/* lpspi3 work as a lpspi master bus */
+&lpspi3 {
+	fsl,spi-num-chipselects = <2>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_lpspi3>;
+	cs-gpios = <&gpio2 7 GPIO_ACTIVE_LOW>, <&gpio2 8 GPIO_ACTIVE_LOW>;
+	status = "okay";
+
+	tpm_tis: tpm@0 {
+		compatible = "infineon,slb9670", "tcg,tpm_tis-spi";
+		reg = <0>;
+		spi-max-frequency = <1000000>;
+	};
+
+	fram@1 {
+		compatible = "atmel,at25";
+		reg = <1>;
+		spi-max-frequency = <1000000>;
+		size = <2048>;
+		pagesize = <16>;
+		address-width = <16>;
+	};
+	
+	/*m41t94: m41t94_wdg@1 {
+		compatible = "st,m41t94-wdt";
+		reg = <1>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_wdi>;
+		spi-max-frequency = <2000000>;
+		timeout-sec = <120>;
+		wdi-gpios = <&gpio2 28 GPIO_ACTIVE_HIGH>;
+	};*/
 };
 
 &lpuart1 { /* console */
@@ -517,7 +674,28 @@
 			MX93_PAD_GPIO_IO12__GPIO2_IO12		0x31e
 		>;
 	};
+	pinctrl_factory_reset: factory-reset {
+		fsl,pins = <
+			MX93_PAD_GPIO_IO21__GPIO2_IO21		0x31e
+		>;
+	};
 
+	pinctrl_lpspi3: lpspi3grp {
+		fsl,pins = <
+			MX93_PAD_GPIO_IO07__GPIO2_IO07		0x3fe
+			MX93_PAD_GPIO_IO08__GPIO2_IO08		0x3fe
+			MX93_PAD_GPIO_IO09__LPSPI3_SIN		0x1fe
+			MX93_PAD_GPIO_IO10__LPSPI3_SOUT		0x1fe
+			MX93_PAD_GPIO_IO11__LPSPI3_SCK		0x1fe
+		>;
+	};
+
+	pinctrl_wdi: wdi-gpio {
+    	fsl,pins = <
+        	MX93_PAD_GPIO_IO28__GPIO2_IO28 0x31e
+    	>;
+	};
+	
 	pinctrl_eqos: eqosgrp {
 		fsl,pins = <
 			MX93_PAD_ENET1_MDC__ENET_QOS_MDC			0x57e
