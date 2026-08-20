@@ -312,6 +312,13 @@
 		pagesize = <16>;
 		size = <8192>;
 	};
+};
+
+&lpi2c3 {
+	clock-frequency = <400000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_lpi2c3>;
+	status = "okay";
 
 	pmic@25 {
 		compatible = "nxp,pca9451a";
@@ -336,7 +343,7 @@
 				regulator-ramp-delay = <3125>;
 			};
 
-			buck4: BUCK4{
+			buck4: BUCK4 {
 				regulator-name = "BUCK4";
 				regulator-min-microvolt = <1620000>;
 				regulator-max-microvolt = <3400000>;
@@ -344,7 +351,7 @@
 				regulator-always-on;
 			};
 
-			buck5: BUCK5{
+			buck5: BUCK5 {
 				regulator-name = "BUCK5";
 				regulator-min-microvolt = <1620000>;
 				regulator-max-microvolt = <3400000>;
@@ -387,13 +394,6 @@
 	};
 };
 
-&lpi2c3 {
-	clock-frequency = <400000>;
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_lpi2c3>;
-	status = "disabled";
-};
-
 /* lpspi3 work as a lpspi master bus */
 &lpspi3 {
 	fsl,spi-num-chipselects = <2>;
@@ -406,16 +406,6 @@
 		compatible = "infineon,slb9670", "tcg,tpm_tis-spi";
 		reg = <0>;
 		spi-max-frequency = <1000000>;
-	};
-
-	m41t94: m41t94_wdg@1 {
-		compatible = "st,m41t94-wdt";
-		reg = <1>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_wdi>;
-		spi-max-frequency = <2000000>;
-		timeout-sec = <120>;
-		wdi-gpios = <&gpio2 28 GPIO_ACTIVE_HIGH>;
 	};
 };
 
@@ -581,12 +571,6 @@
 			MX93_PAD_GPIO_IO10__LPSPI3_SOUT		0x1fe
 			MX93_PAD_GPIO_IO11__LPSPI3_SCK		0x1fe
 		>;
-	};
-
-	pinctrl_wdi: wdi-gpio {
-    	fsl,pins = <
-        	MX93_PAD_GPIO_IO28__GPIO2_IO28 0x31e
-    	>;
 	};
 
 	pinctrl_eqos: eqosgrp {
