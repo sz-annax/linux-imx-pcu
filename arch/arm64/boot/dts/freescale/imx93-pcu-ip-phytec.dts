@@ -401,10 +401,10 @@
 
 /* lpspi3 work as a lpspi master bus */
 &lpspi3 {
-	num-cs = <2>;
+	num-cs = <3>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_lpspi3>;
-	cs-gpios = <&gpio2 7 GPIO_ACTIVE_LOW>, <&gpio2 6 GPIO_ACTIVE_LOW>;
+	cs-gpios = <&gpio2 7 GPIO_ACTIVE_LOW>, <&gpio2 6 GPIO_ACTIVE_LOW>, <&gpio2 8 GPIO_ACTIVE_LOW>;
 	status = "okay";
 
 	tpm_tis: tpm@0 {
@@ -420,6 +420,13 @@
 		size = <2048>;
 		pagesize = <2048>;
 		address-width = <16>;
+	};
+
+	m41t94: rtc@2 {
+		compatible = "st,m41t94-wdt";
+		reg = <2>;
+		spi-max-frequency = <2000000>;
+		timeout-sec = <120>;
 	};
 };
 
@@ -587,6 +594,7 @@
 
 	pinctrl_lpspi3: lpspi3grp {
 		fsl,pins = <
+			MX93_PAD_GPIO_IO06__GPIO2_IO06		0x3fe
 			MX93_PAD_GPIO_IO07__GPIO2_IO07		0x3fe
 			MX93_PAD_GPIO_IO08__GPIO2_IO08		0x3fe
 			MX93_PAD_GPIO_IO09__LPSPI3_SIN		0x1fe

@@ -161,7 +161,6 @@ static int m41t94_wdt_set_timeout(struct watchdog_device *wdd, unsigned int time
 {
 	struct m41t94_wdt *wdt = watchdog_get_drvdata(wdd);
 	u8 rb, bmb;
-	unsigned int resolution_ms;
 	
 	// 确定最佳分辨率和乘数组合
 	if (timeout <= 31) {
@@ -305,6 +304,7 @@ static int m41t94_wdt_probe(struct spi_device *spi)
 		return -ENOMEM;
 
 	wdt->spi = spi;
+	spi_set_drvdata(spi, wdt);
 
 	// Parse device tree properties
 	wdt->enable_gpio = devm_gpiod_get_optional(dev, "enable", GPIOD_OUT_LOW);
@@ -375,6 +375,12 @@ static const struct of_device_id m41t94_wdt_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, m41t94_wdt_of_match);
 
+static const struct spi_device_id m41t94_wdt_ids[] = {
+	{ "m41t94-wdt" },
+	{ }
+};
+MODULE_DEVICE_TABLE(spi, m41t94_wdt_ids);
+
 static struct spi_driver m41t94_wdt_driver = {
 	.driver = {
 		.name = "m41t94-watchdog",
@@ -382,6 +388,7 @@ static struct spi_driver m41t94_wdt_driver = {
 	},
 	.probe = m41t94_wdt_probe,
 	.remove = m41t94_wdt_remove,
+	.id_table = m41t94_wdt_ids,
 };
 module_spi_driver(m41t94_wdt_driver);
 
