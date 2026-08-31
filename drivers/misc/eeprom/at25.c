@@ -9,6 +9,7 @@
 #include <linux/bits.h>
 #include <linux/delay.h>
 #include <linux/device.h>
+#include <linux/iopoll.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/property.h>
@@ -418,6 +419,7 @@ static int at25_fram_to_chip(struct device *dev, struct spi_eeprom *chip)
 static const struct of_device_id at25_of_match[] = {
 	{ .compatible = "atmel,at25" },
 	{ .compatible = "cypress,fm25" },
+	{ .compatible = "ramtron,fm25l16b" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, at25_of_match);
@@ -425,6 +427,7 @@ MODULE_DEVICE_TABLE(of, at25_of_match);
 static const struct spi_device_id at25_spi_ids[] = {
 	{ .name = "at25" },
 	{ .name = "fm25" },
+	{ .name = "fm25l16b" },
 	{ }
 };
 MODULE_DEVICE_TABLE(spi, at25_spi_ids);
@@ -435,6 +438,7 @@ static int at25_probe(struct spi_device *spi)
 	int			err;
 	int			sr;
 	struct spi_eeprom *pdata;
+	bool autodetect_fram;
 	bool is_fram;
 
 	/*
@@ -442,9 +446,12 @@ static int at25_probe(struct spi_device *spi)
 	 * unlike probing manufacturer IDs. We do expect that system
 	 * firmware didn't write it in the past few milliseconds!
 	 */
-	sr = spi_w8r8(spi, AT25_RDSR);
-	if (sr < 0 || sr & AT25_SR_nRDY) {
-		dev_dbg(&spi->dev, "rdsr --> %d (%02x)\n", sr, sr);
+	err = read_poll_timeout(spi_w8r8, sr,
+				sr >= 0 && !(sr & AT25_SR_nRDY),
+				1000, EE_TIMEOUT * 1000, false,
+				spi, AT25_RDSR);
+	if (err) {
+		dev_err(&spi->dev, "RDSR failed: %d (%02x)\n", sr, sr);
 		return -ENXIO;
 	}
 
@@ -456,19 +463,26 @@ static int at25_probe(struct spi_device *spi)
 	at25->spi = spi;
 	spi_set_drvdata(spi, at25);
 
-	is_fram = fwnode_device_is_compatible(dev_fwnode(&spi->dev), "cypress,fm25");
+	autodetect_fram = fwnode_device_is_compatible(dev_fwnode(&spi->dev),
+						       "cypress,fm25");
+	is_fram = autodetect_fram ||
+		fwnode_device_is_compatible(dev_fwnode(&spi->dev),
+					    "ramtron,fm25l16b");
 
 	/* Chip description */
 	pdata = dev_get_platdata(&spi->dev);
 	if (pdata) {
 		at25->chip = *pdata;
 	} else {
-		if (is_fram)
+		if (autodetect_fram)
 			err = at25_fram_to_chip(&spi->dev, &at25->chip);
 		else
 			err = at25_fw_to_chip(&spi->dev, &at25->chip);
 		if (err)
 			return err;
+		if (is_fram && !autodetect_fram)
+			strscpy(at25->chip.name, "fm25l16b",
+				sizeof(at25->chip.name));
 	}
 
 	/* For now we only support 8/16/24 bit addressing */
@@ -526,6 +540,6 @@ static struct spi_driver at25_driver = {
 
 module_spi_driver(at25_driver);
 
-MODULE_DESCRIPTION("Driver for most SPI EEPROMs");
+MODULE_DESCRIPTION("Driver for most SPI EEPROMs and FRAMs");
 MODULE_AUTHOR("David Brownell");
 MODULE_LICENSE("GPL");

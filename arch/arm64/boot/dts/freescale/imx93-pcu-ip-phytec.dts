@@ -154,6 +154,36 @@
 			gpios = <&gpio2 4 GPIO_ACTIVE_LOW>;
 			linux,default-trigger = "heartbeat";
 		};
+
+		led3-red {
+			label = "led3-red";
+			gpios = <&gpio3 21 GPIO_ACTIVE_HIGH>;
+		};
+
+		led3-green {
+			label = "led3-green";
+			gpios = <&gpio4 16 GPIO_ACTIVE_HIGH>;
+		};
+
+		led3-blue {
+			label = "led3-blue";
+			gpios = <&gpio4 26 GPIO_ACTIVE_HIGH>;
+		};
+
+		led4-red {
+			label = "led4-red";
+			gpios = <&gpio2 18 GPIO_ACTIVE_HIGH>;
+		};
+
+		led4-green {
+			label = "led4-green";
+			gpios = <&gpio4 2 GPIO_ACTIVE_HIGH>;
+		};
+
+		led4-blue {
+			label = "led4-blue";
+			gpios = <&gpio4 7 GPIO_ACTIVE_HIGH>;
+		};
 	};
 
 	sound {
@@ -163,7 +193,7 @@
 		pinctrl-0 = <&pinctrl_amp_en>;
 		audio-cpu = <&sai3>;
 		audio-codec = <&ak4619_codec>;
-		spk-con-gpio = <&gpio2 18 GPIO_ACTIVE_HIGH>;
+		spk-con-gpio = <&gpio2 15 GPIO_ACTIVE_HIGH>;
 		audio-routing =
 			"Ext Spk", "AOUT1L",
 			"Ext Spk", "AOUT1R";
@@ -371,16 +401,25 @@
 
 /* lpspi3 work as a lpspi master bus */
 &lpspi3 {
-	fsl,spi-num-chipselects = <2>;
+	num-cs = <2>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_lpspi3>;
-	cs-gpios = <&gpio2 7 GPIO_ACTIVE_LOW>, <&gpio2 8 GPIO_ACTIVE_LOW>;
+	cs-gpios = <&gpio2 7 GPIO_ACTIVE_LOW>, <&gpio2 6 GPIO_ACTIVE_LOW>;
 	status = "okay";
 
 	tpm_tis: tpm@0 {
 		compatible = "infineon,slb9670", "tcg,tpm_tis-spi";
 		reg = <0>;
 		spi-max-frequency = <1000000>;
+	};
+
+	fram@1 {
+		compatible = "ramtron,fm25l16b", "atmel,at25";
+		reg = <1>;
+		spi-max-frequency = <1000000>;
+		size = <2048>;
+		pagesize = <2048>;
+		address-width = <16>;
 	};
 };
 
@@ -521,11 +560,17 @@
 	pinctrl_gpio_leds: gpio-leds {
 		fsl,pins = <
 			MX93_PAD_GPIO_IO04__GPIO2_IO04		0x31e
+			MX93_PAD_SD3_CMD__GPIO3_IO21		0x31e
+			MX93_PAD_ENET2_TD3__GPIO4_IO16		0x31e
+			MX93_PAD_ENET2_RD2__GPIO4_IO26		0x31e
+			MX93_PAD_GPIO_IO18__GPIO2_IO18		0x31e
+			MX93_PAD_ENET1_TD3__GPIO4_IO02		0x31e
+			MX93_PAD_ENET1_TXC__GPIO4_IO07		0x31e
 		>;
 	};
 	pinctrl_amp_en: gpio-amp {
 		fsl,pins = <
-			MX93_PAD_GPIO_IO18__GPIO2_IO18		0x51e
+			MX93_PAD_GPIO_IO15__GPIO2_IO15		0x51e
 		>;
 	};
 	pinctrl_gpio_keys: gpio-keys {

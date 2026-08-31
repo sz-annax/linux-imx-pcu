@@ -32,6 +32,7 @@ properties:
               - fujitsu,mb85rs64
               - microchip,at25160bn
               - microchip,25lc040
+              - ramtron,fm25l16b
               - st,m95m02
               - st,m95256
               - st,m95640
@@ -142,8 +143,11 @@ examples:
         };
 
         fram@1 {
-            compatible = "cypress,fm25", "atmel,at25";
+            compatible = "ramtron,fm25l16b", "atmel,at25";
             reg = <1>;
-            spi-max-frequency = <40000000>;
+            spi-max-frequency = <1000000>;
+            pagesize = <2048>;
+            size = <2048>;
+            address-width = <16>;
         };
     };
