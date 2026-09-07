@@ -16,6 +16,10 @@
 	model = "ANNAX i.MX91 PCU Audio phyCORE V1";
 	compatible = "annax,imx91-pcu-ip-phytec", "phytec,imx91-phycore-som",
 		     "fsl,imx91";
+	aliases {
+		ethernet0 = &eqos;
+		ethernet1 = &fec;
+	};
 
 	chosen {
 		stdout-path = &lpuart1;
@@ -175,27 +179,26 @@
 	status = "okay";
 };
 
-&fec {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_fec>;
-	phy-mode = "rmii";
+&eqos {
+	pinctrl-names = "default", "sleep";
+	pinctrl-0 = <&pinctrl_eqos &pinctrl_eqos_phy_reset>;
+	pinctrl-1 = <&pinctrl_eqos_sleep>;
+	phy-mode = "rgmii-id";
 	phy-handle = <&ethphy1>;
-	fsl,magic-packet;
-	assigned-clocks = <&clk IMX91_CLK_ENET_TIMER>,
-			  <&clk IMX91_CLK_ENET2_REGULAR>;
-	assigned-clock-parents = <&clk IMX91_CLK_SYS_PLL_PFD1_DIV2>,
-				 <&clk IMX91_CLK_SYS_PLL_PFD1_DIV2>;
-	assigned-clock-rates = <100000000>, <50000000>;
 	status = "okay";
 
-	mdio: mdio {
+	mdio {
+		compatible = "snps,dwmac-mdio";
 		#address-cells = <1>;
 		#size-cells = <0>;
 		clock-frequency = <5000000>;
 
 		ethphy1: ethernet-phy@1 {
-			compatible = "ethernet-phy-ieee802.3-c22";
 			reg = <1>;
+			reset-gpios = <&gpio2 22 GPIO_ACTIVE_LOW>;
+			reset-assert-us = <10000>;
+			reset-deassert-us = <80000>;
+			realtek,clkout-disable;
 		};
 	};
 };
