@@ -143,6 +143,7 @@
 		led4-blue {
 			label = "led4-blue";
 			gpios = <&gpio4 7 GPIO_ACTIVE_HIGH>;
+			status = "disabled";
 		};
 	};
 
@@ -183,7 +184,7 @@
 	pinctrl-names = "default", "sleep";
 	pinctrl-0 = <&pinctrl_eqos &pinctrl_eqos_phy_reset>;
 	pinctrl-1 = <&pinctrl_eqos_sleep>;
-	phy-mode = "rgmii-id";
+	phy-mode = "rmii";
 	phy-handle = <&ethphy1>;
 	status = "okay";
 
@@ -193,12 +194,14 @@
 		#size-cells = <0>;
 		clock-frequency = <5000000>;
 
-		ethphy1: ethernet-phy@1 {
-			reg = <1>;
+		ethphy1: ethernet-phy {
+			compatible = "ethernet-phy-ieee802.3-c22";
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_eqos_phy_reset>;
 			reset-gpios = <&gpio2 22 GPIO_ACTIVE_LOW>;
 			reset-assert-us = <10000>;
 			reset-deassert-us = <80000>;
-			realtek,clkout-disable;
+			ti,rmii-mode = "slave";
 		};
 	};
 };
@@ -511,7 +514,6 @@
 			MX91_PAD_ENET2_RD2__GPIO4_IO26		0x31e
 			MX91_PAD_GPIO_IO18__GPIO2_IO18		0x31e
 			MX91_PAD_ENET1_TD3__GPIO4_IO2		0x31e
-			MX91_PAD_ENET1_TXC__GPIO4_IO7		0x31e
 		>;
 	};
 	pinctrl_amp_en: gpio-amp {
@@ -548,14 +550,10 @@
 			MX91_PAD_ENET1_MDIO__ENET_QOS_MDIO			0x57e
 			MX91_PAD_ENET1_RD0__ENET_QOS_RGMII_RD0			0x57e
 			MX91_PAD_ENET1_RD1__ENET_QOS_RGMII_RD1			0x57e
-			MX91_PAD_ENET1_RD2__ENET_QOS_RGMII_RD2			0x57e
-			MX91_PAD_ENET1_RD3__ENET_QOS_RGMII_RD3			0x57e
-			MX91_PAD_ENET1_RXC__ENET_QOS_RGMII_RXC			0x58e
+			MX91_PAD_ENET1_RXC__ENET_QOS_RX_ER			0x58e
 			MX91_PAD_ENET1_RX_CTL__ENET_QOS_RGMII_RX_CTL		0x57e
 			MX91_PAD_ENET1_TD0__ENET_QOS_RGMII_TD0			0x57e
 			MX91_PAD_ENET1_TD1__ENET1_RGMII_TD1			0x57e
-			MX91_PAD_ENET1_TD2__ENET_QOS_RGMII_TD2			0x57e
-			MX91_PAD_ENET1_TD3__ENET_QOS_RGMII_TD3			0x57e
 			MX91_PAD_ENET1_TXC__CCM_ENET_QOS_CLOCK_GENERATE_TX_CLK	0x58e
 			MX91_PAD_ENET1_TX_CTL__ENET_QOS_RGMII_TX_CTL		0x57e
 		>;
