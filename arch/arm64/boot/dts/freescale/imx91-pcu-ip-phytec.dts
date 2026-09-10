@@ -5,8 +5,7 @@
 
 /dts-v1/;
 
-#include <dt-bindings/usb/pd.h>
-#include "imx91.dtsi"
+#include "imx91-phycore-som.dtsi"
 
 &ele_fw2 {
 	memory-region = <&ele_reserved>;
@@ -16,56 +15,9 @@
 	model = "ANNAX i.MX91 PCU Audio phyCORE V1";
 	compatible = "annax,imx91-pcu-ip-phytec", "phytec,imx91-phycore-som",
 		     "fsl,imx91";
-	aliases {
-		ethernet0 = &eqos;
-		ethernet1 = &fec;
-	};
 
 	chosen {
 		stdout-path = &lpuart1;
-	};
-
-	reserved-memory {
-		#address-cells = <2>;
-		#size-cells = <2>;
-		ranges;
-
-		linux,cma {
-			compatible = "shared-dma-pool";
-			reusable;
-			alloc-ranges = <0 0x80000000 0 0x40000000>;
-			size = <0 0x10000000>;
-			linux,cma-default;
-		};
-
-		ele_reserved: ele-reserved@a4120000 {
-			compatible = "shared-dma-pool";
-			reg = <0 0xa4120000 0 0x100000>;
-			no-map;
-		};
-	};
-
-	reg_vref_1v8: regulator-adc-vref {
-		compatible = "regulator-fixed";
-		regulator-name = "vref_1v8";
-		regulator-min-microvolt = <1800000>;
-		regulator-max-microvolt = <1800000>;
-	};
-
-	reg_usb1_vbus: regulator-usb1-vbus {
-		compatible = "regulator-fixed";
-		regulator-name = "usb1_vbus";
-		regulator-min-microvolt = <5000000>;
-		regulator-max-microvolt = <5000000>;
-		regulator-always-on;
-	};
-
-	reg_vsd3v3: regulator-vsd3v3 {
-		compatible = "regulator-fixed";
-		regulator-name = "VSD_3V3";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		regulator-always-on;
 	};
 
 	keys {
@@ -84,7 +36,6 @@
 			gpio-key,wakeup;
 			debounce-interval = <20>;
 		};
-
 	};
 
 	key-cyber {
@@ -104,16 +55,32 @@
 		};
 	};
 
+	reg_usb1_vbus: regulator-usb1-vbus {
+		compatible = "regulator-fixed";
+		regulator-name = "USB1_VBUS";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		regulator-always-on;
+	};
+
+	reg_vsd3v3: regulator-vsd3v3 {
+		compatible = "regulator-fixed";
+		regulator-name = "VSD_3V3";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-always-on;
+	};
+
 	leds {
 		compatible = "gpio-leds";
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_gpio_leds>;
 
-		heartbeat {
-			label = "heartbeat";
-			gpios = <&gpio2 4 GPIO_ACTIVE_LOW>;
-			linux,default-trigger = "heartbeat";
-		};
+		// heartbeat {
+		// 	label = "heartbeat";
+		// 	gpios = <&gpio2 4 GPIO_ACTIVE_LOW>;
+		// 	linux,default-trigger = "heartbeat";
+		// };
 
 		led3-red {
 			label = "led3-red";
@@ -143,7 +110,6 @@
 		led4-blue {
 			label = "led4-blue";
 			gpios = <&gpio4 7 GPIO_ACTIVE_HIGH>;
-			status = "disabled";
 		};
 	};
 
@@ -175,60 +141,9 @@
 	};
 };
 
-&adc1 {
-	vref-supply = <&reg_vref_1v8>;
-	status = "okay";
-};
-
-&eqos {
-	pinctrl-names = "default", "sleep";
-	pinctrl-0 = <&pinctrl_eqos &pinctrl_eqos_phy_reset>;
-	pinctrl-1 = <&pinctrl_eqos_sleep>;
-	phy-mode = "rmii";
-	phy-handle = <&ethphy1>;
-	status = "okay";
-
-	mdio {
-		compatible = "snps,dwmac-mdio";
-		#address-cells = <1>;
-		#size-cells = <0>;
-		clock-frequency = <5000000>;
-
-		ethphy1: ethernet-phy {
-			compatible = "ethernet-phy-ieee802.3-c22";
-			pinctrl-names = "default";
-			pinctrl-0 = <&pinctrl_eqos_phy_reset>;
-			reset-gpios = <&gpio2 22 GPIO_ACTIVE_LOW>;
-			reset-assert-us = <10000>;
-			reset-deassert-us = <80000>;
-			ti,rmii-mode = "slave";
-		};
-	};
-};
-
-&lcdif {
-	status = "disabled";
-	assigned-clock-rates = <445333333>, <148444444>, <400000000>, <133333333>;
-};
-
-&{/display-subsystem} {
-	status = "disabled";
-};
-
-&lpm {
-	status = "disabled";
-};
-
-/*
- * When add, delete or change any target device setting in &lpi2c1,
- * please synchronize the changes to the &i3c1 bus in imx93-11x11-evk-i3c.dts.
- */
-&lpi2c1 {
-	clock-frequency = <400000>;
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_lpi2c1>;
-	status = "okay";
-
+/* Ethernet */
+&ethphy1 {
+	ti,leds-polarity = <1>;
 };
 
 &lpi2c2 {
@@ -257,86 +172,6 @@
 		pagesize = <16>;
 		size = <8192>;
 		vcc-supply = <&reg_vsd3v3>;
-	};
-};
-
-&lpi2c3 {
-	clock-frequency = <400000>;
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_lpi2c3>;
-	status = "okay";
-
-	pmic@25 {
-		compatible = "nxp,pca9451a";
-		reg = <0x25>;
-
-		regulators {
-			buck1: BUCK1 {
-				regulator-name = "BUCK1";
-				regulator-min-microvolt = <610000>;
-				regulator-max-microvolt = <950000>;
-				regulator-boot-on;
-				regulator-always-on;
-				regulator-ramp-delay = <3125>;
-			};
-
-			buck2: BUCK2 {
-				regulator-name = "VDDQ_1V1";
-				regulator-min-microvolt = <1100000>;
-				regulator-max-microvolt = <1100000>;
-				regulator-boot-on;
-				regulator-always-on;
-				regulator-ramp-delay = <3125>;
-			};
-
-			buck4: BUCK4 {
-				regulator-name = "BUCK4";
-				regulator-min-microvolt = <1620000>;
-				regulator-max-microvolt = <3400000>;
-				regulator-boot-on;
-				regulator-always-on;
-			};
-
-			buck5: BUCK5 {
-				regulator-name = "BUCK5";
-				regulator-min-microvolt = <1620000>;
-				regulator-max-microvolt = <3400000>;
-				regulator-boot-on;
-				regulator-always-on;
-			};
-
-			buck6: BUCK6 {
-				regulator-name = "BUCK6";
-				regulator-min-microvolt = <1060000>;
-				regulator-max-microvolt = <1140000>;
-				regulator-boot-on;
-				regulator-always-on;
-			};
-
-			ldo1: LDO1 {
-				regulator-name = "LDO1";
-				regulator-min-microvolt = <1620000>;
-				regulator-max-microvolt = <1980000>;
-				regulator-boot-on;
-				regulator-always-on;
-			};
-
-			ldo4: LDO4 {
-				regulator-name = "LDO4";
-				regulator-min-microvolt = <800000>;
-				regulator-max-microvolt = <840000>;
-				regulator-boot-on;
-				regulator-always-on;
-			};
-
-			ldo5: LDO5 {
-				regulator-name = "LDO5";
-				regulator-min-microvolt = <1800000>;
-				regulator-max-microvolt = <3300000>;
-				regulator-boot-on;
-				regulator-always-on;
-			};
-		};
 	};
 };
 
@@ -375,18 +210,6 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart1>;
 	status = "okay";
-};
-
-&lpuart2 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_uart2>;
-	status = "okay";
-};
-
-&lpuart5 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_uart5>;
-	status = "disabled";
 };
 
 &media_blk_ctrl {
@@ -544,94 +367,6 @@
 		>;
 	};
 
-	pinctrl_eqos: eqosgrp {
-		fsl,pins = <
-			MX91_PAD_ENET1_MDC__ENET1_MDC				0x57e
-			MX91_PAD_ENET1_MDIO__ENET_QOS_MDIO			0x57e
-			MX91_PAD_ENET1_RD0__ENET_QOS_RGMII_RD0			0x57e
-			MX91_PAD_ENET1_RD1__ENET_QOS_RGMII_RD1			0x57e
-			MX91_PAD_ENET1_RXC__ENET_QOS_RX_ER			0x58e
-			MX91_PAD_ENET1_RX_CTL__ENET_QOS_RGMII_RX_CTL		0x57e
-			MX91_PAD_ENET1_TD0__ENET_QOS_RGMII_TD0			0x57e
-			MX91_PAD_ENET1_TD1__ENET1_RGMII_TD1			0x57e
-			MX91_PAD_ENET1_TXC__CCM_ENET_QOS_CLOCK_GENERATE_TX_CLK	0x58e
-			MX91_PAD_ENET1_TX_CTL__ENET_QOS_RGMII_TX_CTL		0x57e
-		>;
-	};
-
-	pinctrl_eqos_phy_reset: eqos-phy-reset {
-		fsl,pins = <
-			MX91_PAD_GPIO_IO22__GPIO2_IO22		0x31e
-		>;
-	};
-
-	pinctrl_eqos_sleep: eqossleepgrp {
-		fsl,pins = <
-			MX91_PAD_ENET1_MDC__GPIO4_IO0				0x31e
-			MX91_PAD_ENET1_MDIO__GPIO4_IO1				0x31e
-			MX91_PAD_ENET1_RD0__GPIO4_IO10                          0x31e
-			MX91_PAD_ENET1_RD1__GPIO4_IO11				0x31e
-			MX91_PAD_ENET1_RD2__GPIO4_IO12				0x31e
-			MX91_PAD_ENET1_RD3__GPIO4_IO13				0x31e
-			MX91_PAD_ENET1_RXC__GPIO4_IO9                          0x31e
-			MX91_PAD_ENET1_RX_CTL__GPIO4_IO8			0x31e
-			MX91_PAD_ENET1_TD0__GPIO4_IO5                          0x31e
-			MX91_PAD_ENET1_TD1__GPIO4_IO4                          0x31e
-			MX91_PAD_ENET1_TD2__GPIO4_IO3				0x31e
-			MX91_PAD_ENET1_TD3__GPIO4_IO2				0x31e
-			MX91_PAD_ENET1_TXC__GPIO4_IO7                          0x31e
-			MX91_PAD_ENET1_TX_CTL__GPIO4_IO6                       0x31e
-		>;
-	};
-
-	pinctrl_fec: fecgrp {
-		fsl,pins = <
-			MX91_PAD_ENET2_MDC__ENET2_MDC			0x50e
-			MX91_PAD_ENET2_MDIO__ENET2_MDIO			0x502
-			MX91_PAD_ENET2_RD0__ENET2_RGMII_RD0		0x57e
-			MX91_PAD_ENET2_RD1__ENET2_RGMII_RD1		0x57e
-			MX91_PAD_ENET2_RXC__ENET2_RX_ER			0x5fe
-			MX91_PAD_ENET2_RX_CTL__ENET2_RGMII_RX_CTL	0x57e
-			MX91_PAD_ENET2_TD0__ENET2_RGMII_TD0		0x50e
-			MX91_PAD_ENET2_TD1__ENET2_RGMII_TD1		0x50e
-			MX91_PAD_ENET2_TX_CTL__ENET2_RGMII_TX_CTL	0x50e
-			MX91_PAD_ENET2_TD2__ENET2_TX_CLK2		0x4000050e
-		>;
-	};
-
-	pinctrl_fec_sleep: fecsleepgrp {
-		fsl,pins = <
-			MX91_PAD_ENET2_MDC__GPIO4_IO14			0x51e
-			MX91_PAD_ENET2_MDIO__GPIO4_IO15			0x51e
-			MX91_PAD_ENET2_RD0__GPIO4_IO24			0x51e
-			MX91_PAD_ENET2_RD1__GPIO4_IO25			0x51e
-			MX91_PAD_ENET2_RD2__GPIO4_IO26			0x51e
-			MX91_PAD_ENET2_RD3__GPIO4_IO27			0x51e
-			MX91_PAD_ENET2_RXC__GPIO4_IO23                  0x51e
-			MX91_PAD_ENET2_RX_CTL__GPIO4_IO22		0x51e
-			MX91_PAD_ENET2_TD0__GPIO4_IO19			0x51e
-			MX91_PAD_ENET2_TD1__GPIO4_IO18			0x51e
-			MX91_PAD_ENET2_TD2__GPIO4_IO17			0x51e
-			MX91_PAD_ENET2_TD3__GPIO4_IO16			0x51e
-			MX91_PAD_ENET2_TXC__GPIO4_IO21                  0x51e
-			MX91_PAD_ENET2_TX_CTL__GPIO4_IO20               0x51e
-		>;
-	};
-
-	pinctrl_flexcan2: flexcan2grp {
-		fsl,pins = <
-			MX91_PAD_GPIO_IO25__CAN2_TX	0x139e
-			MX91_PAD_GPIO_IO27__CAN2_RX	0x139e
-		>;
-	};
-	pinctrl_flexcan2_sleep: flexcan2sleepgrp {
-		fsl,pins = <
-			MX91_PAD_GPIO_IO25__GPIO2_IO25  0x31e
-			MX91_PAD_GPIO_IO27__GPIO2_IO27	0x31e
-		>;
-	};
-
-
 	pinctrl_uart1: uart1grp {
 		fsl,pins = <
 			MX91_PAD_UART1_RXD__LPUART1_RX			0x31e
@@ -639,40 +374,10 @@
 		>;
 	};
 
-	pinctrl_uart2: uart2grp {
-		fsl,pins = <
-			MX91_PAD_UART2_RXD__LPUART2_RX			0x31e
-			MX91_PAD_UART2_TXD__LPUART2_TX			0x31e
-		>;
-	};
-
-	pinctrl_uart5: uart5grp {
-		fsl,pins = <
-			MX91_PAD_DAP_TDO_TRACESWO__LPUART5_TX		0x31e
-			MX91_PAD_DAP_TDI__LPUART5_RX			0x31e
-			MX91_PAD_DAP_TMS_SWDIO__LPUART5_RTS_B		0x31e
-			MX91_PAD_DAP_TCLK_SWCLK__LPUART5_CTS_B		0x31e
-		>;
-	};
-
-	pinctrl_lpi2c1: lpi2c1grp {
-		fsl,pins = <
-			MX91_PAD_I2C1_SCL__LPI2C1_SCL			0x40000b9e
-			MX91_PAD_I2C1_SDA__LPI2C1_SDA			0x40000b9e
-		>;
-	};
-
 	pinctrl_lpi2c2: lpi2c2grp {
 		fsl,pins = <
 			MX91_PAD_I2C2_SCL__LPI2C2_SCL			0x40000b9e
 			MX91_PAD_I2C2_SDA__LPI2C2_SDA			0x40000b9e
-		>;
-	};
-
-	pinctrl_lpi2c3: lpi2c3grp {
-		fsl,pins = <
-			MX91_PAD_GPIO_IO28__LPI2C3_SDA			0x40000b9e
-			MX91_PAD_GPIO_IO29__LPI2C3_SCL			0x40000b9e
 		>;
 	};
 
