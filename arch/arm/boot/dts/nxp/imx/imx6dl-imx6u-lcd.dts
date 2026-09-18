@@ -2,14 +2,52 @@
 
 #include "imx6dl.dtsi"
 #include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
 #include "imx6u-lcd-linux.dtsi"
 
 / {
 	model = "IM356-M-A LCD Display Platform";
 	compatible = "annax,imx6u-lcd", "fsl,imx6dl";
 
+	aliases {
+		rtc0 = &board_rtc;
+		rtc1 = &snvs_rtc;
+	};
+
 	chosen {
 		stdout-path = &uart1;
+	};
+
+	keys {
+		compatible = "gpio-keys";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_keys>;
+
+		factory-reset {
+			label = "Factory reset";
+			linux,code = <KEY_RESTART>;
+			gpios = <&gpio4 30 GPIO_ACTIVE_LOW>;
+			debounce-interval = <30>;
+		};
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_leds>;
+
+		error {
+			label = "imx6u-lcd:red:error";
+			gpios = <&gpio3 23 GPIO_ACTIVE_LOW>;
+			default-state = "off";
+		};
+	};
+
+	ir-receiver {
+		compatible = "gpio-ir-receiver";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_ir>;
+		gpios = <&gpio2 23 GPIO_ACTIVE_LOW>;
 	};
 
 	memory@10000000 {
@@ -42,9 +80,145 @@
 	fsl,soc-operating-points = <792000 1175000>, <396000 1175000>;
 };
 
+&epdc {
+	status = "disabled";
+};
+
 &uart1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart1>;
+	status = "okay";
+};
+
+&ecspi1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_ecspi1>;
+	cs-gpios = <0>, <&gpio4 10 GPIO_ACTIVE_LOW>;
+	status = "okay";
+
+	tpm@1 {
+		compatible = "infineon,slb9670", "tcg,tpm_tis-spi";
+		reg = <1>;
+		spi-max-frequency = <1000000>;
+	};
+};
+
+&ecspi3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_ecspi3>;
+	cs-gpios = <&gpio5 18 GPIO_ACTIVE_LOW>,
+		   <&gpio4 25 GPIO_ACTIVE_LOW>,
+		   <&gpio5 19 GPIO_ACTIVE_LOW>;
+	status = "okay";
+
+	watchdog@0 {
+		compatible = "st,m41t94-wdt";
+		reg = <0>;
+		spi-max-frequency = <1000000>;
+		spi-cpol;
+		spi-cpha;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_watchdog>;
+		wdi-gpios = <&gpio5 28 GPIO_ACTIVE_HIGH>;
+		timeout-sec = <60>;
+	};
+
+	flash@1 {
+		compatible = "winbond,w25q32", "jedec,spi-nor";
+		reg = <1>;
+		spi-max-frequency = <10000000>;
+	};
+
+	fram@2 {
+		compatible = "ramtron,fm25l16b", "atmel,at25";
+		reg = <2>;
+		spi-max-frequency = <1000000>;
+		pagesize = <2048>;
+		size = <2048>;
+		address-width = <16>;
+	};
+};
+
+&usbotg {
+	dr_mode = "peripheral";
+	disable-over-current;
+	status = "okay";
+};
+
+&usbh1 {
+	dr_mode = "host";
+	disable-over-current;
+	status = "okay";
+};
+
+&i2c1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2c1>;
+	clock-frequency = <100000>;
+	status = "okay";
+
+	board_rtc: rtc@51 {
+		compatible = "nxp,pcf85263";
+		reg = <0x51>;
+	};
+};
+
+&i2c2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2c2>;
+	clock-frequency = <100000>;
+	status = "okay";
+
+	adc@48 {
+		compatible = "ti,ads1015";
+		reg = <0x48>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		#io-channel-cells = <1>;
+
+		channel@4 {
+			reg = <4>;
+			ti,gain = <1>;
+			ti,datarate = <4>;
+		};
+
+		channel@5 {
+			reg = <5>;
+			ti,gain = <1>;
+			ti,datarate = <4>;
+		};
+
+		channel@6 {
+			reg = <6>;
+			ti,gain = <1>;
+			ti,datarate = <4>;
+		};
+
+		channel@7 {
+			reg = <7>;
+			ti,gain = <1>;
+			ti,datarate = <4>;
+		};
+	};
+
+	temperature-sensor@49 {
+		compatible = "national,lm75b";
+		reg = <0x49>;
+		vs-supply = <&reg_3v3>;
+	};
+};
+
+&i2c3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2c3>;
+	clock-frequency = <100000>;
+	status = "okay";
+};
+
+&i2c4 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2c4>;
+	clock-frequency = <100000>;
 	status = "okay";
 };
 
@@ -95,7 +269,14 @@
 
 &gpio1 {
 	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_backlight_off>;
+	pinctrl-0 = <&pinctrl_backlight_off &pinctrl_tpm_reset>;
+
+	tpm-reset-hog {
+		gpio-hog;
+		gpios = <2 GPIO_ACTIVE_HIGH>;
+		output-high;
+		line-name = "tpm-reset-deasserted";
+	};
 
 	backlight-off-hog {
 		gpio-hog;
@@ -118,6 +299,90 @@
 };
 
 &iomuxc {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_board_id>;
+
+	pinctrl_board_id: boardidgrp {
+		fsl,pins = <
+			MX6QDL_PAD_CSI0_DAT18__GPIO6_IO04 0x130b0
+			MX6QDL_PAD_CSI0_DAT16__GPIO6_IO02 0x130b0
+			MX6QDL_PAD_CSI0_DAT14__GPIO6_IO00 0x130b0
+			MX6QDL_PAD_CSI0_DAT12__GPIO5_IO30 0x130b0
+			MX6QDL_PAD_CSI0_DAT19__GPIO6_IO05 0x130b0
+			MX6QDL_PAD_CSI0_DAT17__GPIO6_IO03 0x130b0
+			MX6QDL_PAD_CSI0_DAT15__GPIO6_IO01 0x130b0
+			MX6QDL_PAD_CSI0_DAT13__GPIO5_IO31 0x130b0
+		>;
+	};
+
+	pinctrl_ecspi1: ecspi1grp {
+		fsl,pins = <
+			MX6QDL_PAD_KEY_COL0__ECSPI1_SCLK 0x100b1
+			MX6QDL_PAD_KEY_ROW0__ECSPI1_MOSI 0x100b1
+			MX6QDL_PAD_KEY_COL1__ECSPI1_MISO 0x100b1
+			MX6QDL_PAD_KEY_COL2__GPIO4_IO10 0x1b0b0
+		>;
+	};
+
+	pinctrl_ecspi3: ecspi3grp {
+		fsl,pins = <
+			MX6QDL_PAD_DISP0_DAT0__ECSPI3_SCLK 0x100b1
+			MX6QDL_PAD_DISP0_DAT1__ECSPI3_MOSI 0x100b1
+			MX6QDL_PAD_DISP0_DAT2__ECSPI3_MISO 0x100b1
+			MX6QDL_PAD_CSI0_PIXCLK__GPIO5_IO18 0x1b0b0
+			MX6QDL_PAD_DISP0_DAT4__GPIO4_IO25 0x1b0b0
+			MX6QDL_PAD_CSI0_MCLK__GPIO5_IO19 0x1b0b0
+		>;
+	};
+
+	pinctrl_tpm_reset: tpmresetgrp {
+		fsl,pins = <MX6QDL_PAD_GPIO_2__GPIO1_IO02 0x1b0b0>;
+	};
+
+	pinctrl_watchdog: watchdoggrp {
+		fsl,pins = <MX6QDL_PAD_CSI0_DAT10__GPIO5_IO28 0x1b0b0>;
+	};
+
+	pinctrl_keys: keysgrp {
+		fsl,pins = <MX6QDL_PAD_DISP0_DAT9__GPIO4_IO30 0x1b0b0>;
+	};
+
+	pinctrl_leds: ledsgrp {
+		fsl,pins = <MX6QDL_PAD_EIM_D23__GPIO3_IO23 0x1b0b0>;
+	};
+
+	pinctrl_ir: irgrp {
+		fsl,pins = <MX6QDL_PAD_EIM_CS0__GPIO2_IO23 0x1b0b0>;
+	};
+
+	pinctrl_i2c1: i2c1grp {
+		fsl,pins = <
+			MX6QDL_PAD_CSI0_DAT9__I2C1_SCL 0x4001b8b1
+			MX6QDL_PAD_CSI0_DAT8__I2C1_SDA 0x4001b8b1
+		>;
+	};
+
+	pinctrl_i2c2: i2c2grp {
+		fsl,pins = <
+			MX6QDL_PAD_KEY_COL3__I2C2_SCL 0x4001b8b1
+			MX6QDL_PAD_KEY_ROW3__I2C2_SDA 0x4001b8b1
+		>;
+	};
+
+	pinctrl_i2c3: i2c3grp {
+		fsl,pins = <
+			MX6QDL_PAD_GPIO_3__I2C3_SCL 0x4001b8b1
+			MX6QDL_PAD_GPIO_6__I2C3_SDA 0x4001b8b1
+		>;
+	};
+
+	pinctrl_i2c4: i2c4grp {
+		fsl,pins = <
+			MX6QDL_PAD_NANDF_WP_B__I2C4_SCL 0x4001b8b1
+			MX6QDL_PAD_NANDF_CS3__I2C4_SDA 0x4001b8b1
+		>;
+	};
+
 	pinctrl_uart1: uart1grp {
 		fsl,pins = <
 			MX6QDL_PAD_SD3_DAT7__UART1_TX_DATA 0x1b0b1
