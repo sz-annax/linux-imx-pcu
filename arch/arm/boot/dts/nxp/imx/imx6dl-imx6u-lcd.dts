@@ -1,0 +1,177 @@
+/dts-v1/;
+
+#include "imx6dl.dtsi"
+#include <dt-bindings/gpio/gpio.h>
+#include "imx6u-lcd-linux.dtsi"
+
+/ {
+	model = "IM356-M-A LCD Display Platform";
+	compatible = "annax,imx6u-lcd", "fsl,imx6dl";
+
+	chosen {
+		stdout-path = &uart1;
+	};
+
+	memory@10000000 {
+		device_type = "memory";
+		reg = <0x10000000 0x40000000>;
+	};
+
+	reg_3v3: regulator-3v3 {
+		compatible = "regulator-fixed";
+		regulator-name = "GEN_3V3";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-always-on;
+	};
+
+	reserved-memory {
+		linux,cma {
+			size = <0x04000000>;
+		};
+	};
+};
+
+&cpu0 {
+	operating-points = <792000 1175000>, <396000 1150000>;
+	fsl,soc-operating-points = <792000 1175000>, <396000 1175000>;
+};
+
+&{/cpus/cpu@1} {
+	operating-points = <792000 1175000>, <396000 1150000>;
+	fsl,soc-operating-points = <792000 1175000>, <396000 1175000>;
+};
+
+&uart1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart1>;
+	status = "okay";
+};
+
+&usdhc2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usdhc2>;
+	bus-width = <4>;
+	max-frequency = <25000000>;
+	cd-gpios = <&gpio3 20 GPIO_ACTIVE_LOW>;
+	vmmc-supply = <&reg_3v3>;
+	vqmmc-supply = <&reg_3v3>;
+	no-1-8-v;
+	disable-wp;
+	status = "okay";
+};
+
+&usdhc4 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usdhc4>;
+	bus-width = <8>;
+	max-frequency = <25000000>;
+	non-removable;
+	vmmc-supply = <&reg_3v3>;
+	vqmmc-supply = <&reg_3v3>;
+	no-1-8-v;
+	status = "okay";
+};
+
+&fec {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_fec>;
+	phy-mode = "rmii";
+	phy-handle = <&ethphy>;
+	status = "okay";
+
+	mdio {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		ethphy: ethernet-phy@1 {
+			reg = <1>;
+			reset-gpios = <&gpio7 12 GPIO_ACTIVE_LOW>;
+			reset-assert-us = <10000>;
+			reset-deassert-us = <100000>;
+		};
+	};
+};
+
+&gpio1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_backlight_off>;
+
+	backlight-off-hog {
+		gpio-hog;
+		gpios = <16 GPIO_ACTIVE_HIGH>;
+		output-low;
+		line-name = "backlight-off";
+	};
+};
+
+&gpio3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_panel_off>;
+
+	panel-off-hog {
+		gpio-hog;
+		gpios = <28 GPIO_ACTIVE_HIGH>;
+		output-low;
+		line-name = "panel-power-off";
+	};
+};
+
+&iomuxc {
+	pinctrl_uart1: uart1grp {
+		fsl,pins = <
+			MX6QDL_PAD_SD3_DAT7__UART1_TX_DATA 0x1b0b1
+			MX6QDL_PAD_SD3_DAT6__UART1_RX_DATA 0x1b0b1
+		>;
+	};
+
+	pinctrl_usdhc2: usdhc2grp {
+		fsl,pins = <
+			MX6QDL_PAD_SD2_CLK__SD2_CLK 0x17059
+			MX6QDL_PAD_SD2_CMD__SD2_CMD 0x17059
+			MX6QDL_PAD_SD2_DAT0__SD2_DATA0 0x17059
+			MX6QDL_PAD_SD2_DAT1__SD2_DATA1 0x17059
+			MX6QDL_PAD_SD2_DAT2__SD2_DATA2 0x17059
+			MX6QDL_PAD_SD2_DAT3__SD2_DATA3 0x17059
+			MX6QDL_PAD_EIM_D20__GPIO3_IO20 0x1b0b0
+		>;
+	};
+
+	pinctrl_usdhc4: usdhc4grp {
+		fsl,pins = <
+			MX6QDL_PAD_SD4_CLK__SD4_CLK 0x17059
+			MX6QDL_PAD_SD4_CMD__SD4_CMD 0x17059
+			MX6QDL_PAD_SD4_DAT0__SD4_DATA0 0x17059
+			MX6QDL_PAD_SD4_DAT1__SD4_DATA1 0x17059
+			MX6QDL_PAD_SD4_DAT2__SD4_DATA2 0x17059
+			MX6QDL_PAD_SD4_DAT3__SD4_DATA3 0x17059
+			MX6QDL_PAD_SD4_DAT4__SD4_DATA4 0x17059
+			MX6QDL_PAD_SD4_DAT5__SD4_DATA5 0x17059
+			MX6QDL_PAD_SD4_DAT6__SD4_DATA6 0x17059
+			MX6QDL_PAD_SD4_DAT7__SD4_DATA7 0x17059
+		>;
+	};
+
+	pinctrl_fec: fecgrp {
+		fsl,pins = <
+			MX6QDL_PAD_ENET_MDC__ENET_MDC 0x1b0b0
+			MX6QDL_PAD_ENET_MDIO__ENET_MDIO 0x1b0b0
+			MX6QDL_PAD_ENET_CRS_DV__ENET_RX_EN 0x1b0b0
+			MX6QDL_PAD_ENET_RXD0__ENET_RX_DATA0 0x1b0b0
+			MX6QDL_PAD_ENET_RXD1__ENET_RX_DATA1 0x1b0b0
+			MX6QDL_PAD_ENET_TX_EN__ENET_TX_EN 0x1b0b0
+			MX6QDL_PAD_ENET_TXD0__ENET_TX_DATA0 0x1b0b0
+			MX6QDL_PAD_ENET_TXD1__ENET_TX_DATA1 0x1b0b0
+			MX6QDL_PAD_GPIO_16__ENET_REF_CLK 0x4001b0b0
+			MX6QDL_PAD_GPIO_17__GPIO7_IO12 0x1b0b0
+		>;
+	};
+
+	pinctrl_backlight_off: backlightoffgrp {
+		fsl,pins = <MX6QDL_PAD_SD1_DAT0__GPIO1_IO16 0x1b0b0>;
+	};
+
+	pinctrl_panel_off: paneloffgrp {
+		fsl,pins = <MX6QDL_PAD_EIM_D28__GPIO3_IO28 0x1b0b0>;
+	};
+};
