@@ -373,6 +373,12 @@ static int ipu_drm_bind(struct device *dev, struct device *master, void *data)
 	int dp = -EINVAL;
 	int ret;
 
+	if (!drm->mode_config.funcs)
+		drm->mode_config.funcs = &ipuv3_drm_mode_config_funcs;
+
+	if (!drm->mode_config.helper_private)
+		drm->mode_config.helper_private = &ipuv3_drm_mode_config_helpers;
+
 	if (pdata->dp >= 0)
 		dp = IPU_DP_FLOW_SYNC_BG;
 	primary_plane = ipu_plane_init(drm, ipu, pdata->dma[0], dp, 0,

@@ -1268,6 +1268,34 @@ static const struct panel_desc auo_g190ean01 = {
 	.connector_type = DRM_MODE_CONNECTOR_LVDS,
 };
 
+static const struct drm_display_mode auo_p294ivn02_0_mode = {
+	.clock = 152942,
+	.hdisplay = 1920,
+	.hsync_start = 1920 + 40,
+	.hsync_end = 1920 + 40 + 60,
+	.htotal = 1920 + 40 + 60 + 220,
+	.vdisplay = 1080,
+	.vsync_start = 1080 + 7,
+	.vsync_end = 1080 + 7 + 10,
+	.vtotal = 1080 + 7 + 10 + 21,
+	.flags = DRM_MODE_FLAG_NHSYNC | DRM_MODE_FLAG_PVSYNC,
+};
+
+static const struct panel_desc auo_p294ivn02_0 = {
+	.modes = &auo_p294ivn02_0_mode,
+	.num_modes = 1,
+	.bpc = 8,
+	.delay = {
+		.prepare = 40,
+		.enable = 640,
+		.disable = 20,
+		.unprepare = 1000,
+	},
+	.bus_format = MEDIA_BUS_FMT_RGB888_1X7X4_SPWG,
+	.bus_flags = DRM_BUS_FLAG_DE_HIGH,
+	.connector_type = DRM_MODE_CONNECTOR_LVDS,
+};
+
 static const struct display_timing auo_p320hvn03_timings = {
 	.pixelclock = { 106000000, 148500000, 164000000 },
 	.hactive = { 1920, 1920, 1920 },
@@ -4690,6 +4718,9 @@ static const struct of_device_id platform_of_match[] = {
 	}, {
 		.compatible = "auo,g190ean01",
 		.data = &auo_g190ean01,
+	}, {
+		.compatible = "auo,p294ivn02-0",
+		.data = &auo_p294ivn02_0,
 	}, {
 		.compatible = "auo,p320hvn03",
 		.data = &auo_p320hvn03,

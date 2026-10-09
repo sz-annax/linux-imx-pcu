@@ -3,6 +3,7 @@
 #include "imx6dl.dtsi"
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
+#include <dt-bindings/pwm/pwm.h>
 #include "imx6u-lcd-linux.dtsi"
 
 / {
@@ -16,6 +17,42 @@
 
 	chosen {
 		stdout-path = &uart1;
+	};
+
+	backlight_lvds: backlight-lvds {
+		compatible = "pwm-backlight";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_backlight_off>;
+		pwms = <&pwm4 0 500000 PWM_POLARITY_INVERTED>;
+		enable-gpios = <&gpio1 16 GPIO_ACTIVE_HIGH>;
+		brightness-levels = <0 10 20 30 40 50 60 70 80 90 100>;
+		default-brightness-level = <8>;
+	};
+
+	panel_lvds: panel {
+		compatible = "auo,p294ivn02-0";
+		power-supply = <&reg_panel>;
+		backlight = <&backlight_lvds>;
+		data-mapping = "vesa-24";
+
+		port {
+			panel_lvds_in: endpoint {
+				remote-endpoint = <&lvds0_out>;
+			};
+		};
+	};
+
+	reg_panel: regulator-panel {
+		compatible = "regulator-fixed";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_panel_off>;
+		regulator-name = "panel-vdd";
+		regulator-min-microvolt = <12000000>;
+		regulator-max-microvolt = <12000000>;
+		gpio = <&gpio3 28 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		startup-delay-us = <30000>;
+		off-on-delay-us = <1000000>;
 	};
 
 	keys {
@@ -70,6 +107,13 @@
 	};
 };
 
+&clks {
+	assigned-clocks = <&clks IMX6QDL_CLK_LDB_DI0_SEL>,
+			  <&clks IMX6QDL_CLK_LDB_DI1_SEL>;
+	assigned-clock-parents = <&clks IMX6QDL_CLK_PLL5_VIDEO_DIV>,
+				 <&clks IMX6QDL_CLK_PLL5_VIDEO_DIV>;
+};
+
 &cpu0 {
 	operating-points = <792000 1175000>, <396000 1150000>;
 	fsl,soc-operating-points = <792000 1175000>, <396000 1175000>;
@@ -82,6 +126,43 @@
 
 &epdc {
 	status = "disabled";
+};
+
+&gpu {
+	reg = <0x00130000 0x4000>, <0x00134000 0x4000>,
+	      <0x10000000 0x0>, <0x0 0x02000000>;
+};
+
+&ldb {
+	compatible = "fsl,imx6q-ldb", "fsl,imx53-ldb";
+	clocks = <&clks IMX6QDL_CLK_LDB_DI0_SEL>,
+		 <&clks IMX6QDL_CLK_LDB_DI1_SEL>,
+		 <&clks IMX6QDL_CLK_IPU1_DI0_SEL>,
+		 <&clks IMX6QDL_CLK_IPU1_DI1_SEL>,
+		 <&clks IMX6QDL_CLK_LDB_DI0>,
+		 <&clks IMX6QDL_CLK_LDB_DI1>;
+	clock-names = "di0_pll", "di1_pll", "di0_sel", "di1_sel",
+		      "di0", "di1";
+	fsl,dual-channel;
+	status = "okay";
+
+	lvds-channel@0 {
+		status = "okay";
+
+		port@4 {
+			reg = <4>;
+
+			lvds0_out: endpoint {
+				remote-endpoint = <&panel_lvds_in>;
+			};
+		};
+	};
+};
+
+&pwm4 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pwm4>;
+	status = "okay";
 };
 
 &uart1 {
@@ -250,6 +331,8 @@
 &fec {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_fec>;
+	assigned-clocks = <&clks IMX6QDL_CLK_ENET_REF_SEL>;
+	assigned-clock-parents = <&clk50m_phy>;
 	phy-mode = "rmii";
 	phy-handle = <&ethphy>;
 	status = "okay";
@@ -269,7 +352,7 @@
 
 &gpio1 {
 	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_backlight_off &pinctrl_tpm_reset>;
+	pinctrl-0 = <&pinctrl_tpm_reset>;
 
 	tpm-reset-hog {
 		gpio-hog;
@@ -278,24 +361,6 @@
 		line-name = "tpm-reset-deasserted";
 	};
 
-	backlight-off-hog {
-		gpio-hog;
-		gpios = <16 GPIO_ACTIVE_HIGH>;
-		output-low;
-		line-name = "backlight-off";
-	};
-};
-
-&gpio3 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_panel_off>;
-
-	panel-off-hog {
-		gpio-hog;
-		gpios = <28 GPIO_ACTIVE_HIGH>;
-		output-low;
-		line-name = "panel-power-off";
-	};
 };
 
 &iomuxc {
@@ -434,6 +499,10 @@
 
 	pinctrl_backlight_off: backlightoffgrp {
 		fsl,pins = <MX6QDL_PAD_SD1_DAT0__GPIO1_IO16 0x1b0b0>;
+	};
+
+	pinctrl_pwm4: pwm4grp {
+		fsl,pins = <MX6QDL_PAD_SD1_CMD__PWM4_OUT 0x1b0b0>;
 	};
 
 	pinctrl_panel_off: paneloffgrp {
