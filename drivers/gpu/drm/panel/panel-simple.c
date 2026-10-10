@@ -1274,10 +1274,10 @@ static const struct drm_display_mode auo_p294ivn02_0_mode = {
 	.hsync_start = 1920 + 40,
 	.hsync_end = 1920 + 40 + 60,
 	.htotal = 1920 + 40 + 60 + 220,
-	.vdisplay = 1080,
-	.vsync_start = 1080 + 7,
-	.vsync_end = 1080 + 7 + 10,
-	.vtotal = 1080 + 7 + 10 + 21,
+	.vdisplay = 720,
+	.vsync_start = 720 + 7,
+	.vsync_end = 720 + 7 + 10,
+	.vtotal = 720 + 7 + 10 + 21,
 	.flags = DRM_MODE_FLAG_NHSYNC | DRM_MODE_FLAG_PVSYNC,
 };
 
