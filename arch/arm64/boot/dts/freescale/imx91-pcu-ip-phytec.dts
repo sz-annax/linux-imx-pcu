@@ -16,6 +16,11 @@
 	compatible = "annax,imx91-pcu-ip-phytec", "phytec,imx91-phycore-som",
 		     "fsl,imx91";
 
+	aliases {
+		ethernet0 = &fec;
+		ethernet1 = &eqos;
+	};
+
 	chosen {
 		stdout-path = &lpuart1;
 	};
@@ -82,11 +87,6 @@
 		// 	linux,default-trigger = "heartbeat";
 		// };
 
-		led3-red {
-			label = "led3-red";
-			gpios = <&gpio3 21 GPIO_ACTIVE_HIGH>;
-		};
-
 		led3-green {
 			label = "led3-green";
 			gpios = <&gpio4 16 GPIO_ACTIVE_HIGH>;
@@ -144,6 +144,34 @@
 /* Ethernet */
 &ethphy1 {
 	ti,leds-polarity = <0>;
+};
+
+/* Carrier U500 KSZ8081RNA: independent RMII interface, 50 MHz on XI. */
+&eqos {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_eqos_rmii>;
+	phy-mode = "rmii";
+	phy-handle = <&carrier_phy>;
+	assigned-clock-rates = <100000000>, <50000000>;
+	status = "okay";
+
+	mdio {
+		compatible = "snps,dwmac-mdio";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		clock-frequency = <2500000>;
+
+		/* R511/R512 pull PHYAD[1:0] and PHYAD[2] high. */
+		carrier_phy: ethernet-phy@7 {
+			compatible = "ethernet-phy-ieee802.3-c22";
+			reg = <7>;
+			clocks = <&clk IMX91_CLK_ENET1_QOS_TSN>;
+			clock-names = "rmii-ref";
+			reset-gpios = <&gpio3 21 GPIO_ACTIVE_LOW>;
+			reset-assert-us = <10000>;
+			reset-deassert-us = <80000>;
+		};
+	};
 };
 
 &lpi2c2 {
@@ -329,10 +357,25 @@
 };
 
 &iomuxc {
+	pinctrl_eqos_rmii: eqos-rmii-grp {
+		fsl,pins = <
+			MX91_PAD_ENET1_MDC__ENET1_MDC 0x57e
+			MX91_PAD_ENET1_MDIO__ENET_QOS_MDIO 0x57e
+			MX91_PAD_ENET1_TD0__ENET_QOS_RGMII_TD0 0x57e
+			MX91_PAD_ENET1_TD1__ENET1_RGMII_TD1 0x57e
+			MX91_PAD_ENET1_TX_CTL__ENET_QOS_RGMII_TX_CTL 0x57e
+			MX91_PAD_ENET1_TD2__ENET_QOS_CLOCK_GENERATE_CLK 0x57e
+			MX91_PAD_ENET1_RD0__ENET_QOS_RGMII_RD0 0x57e
+			MX91_PAD_ENET1_RD1__ENET_QOS_RGMII_RD1 0x57e
+			MX91_PAD_ENET1_RX_CTL__ENET_QOS_RGMII_RX_CTL 0x57e
+			MX91_PAD_ENET1_RXC__ENET_QOS_RX_ER 0x57e
+			MX91_PAD_SD3_CMD__GPIO3_IO21 0x57e
+		>;
+	};
+
 	pinctrl_gpio_leds: gpio-leds {
 		fsl,pins = <
 			MX91_PAD_GPIO_IO04__GPIO2_IO4		0x31e
-			MX91_PAD_SD3_CMD__GPIO3_IO21		0x31e
 			MX91_PAD_ENET2_TD3__GPIO4_IO16		0x31e
 			MX91_PAD_ENET2_RD2__GPIO4_IO26		0x31e
 			MX91_PAD_GPIO_IO18__GPIO2_IO18		0x31e
